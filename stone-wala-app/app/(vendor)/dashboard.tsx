@@ -385,6 +385,16 @@ const onRefresh = async () => {
             <Text className="font-bold text-stone-900 text-base">My Products</Text>
             <Text className="text-xs text-stone-400 mt-1">Manage items</Text>
           </Pressable>
+          <Pressable
+  onPress={() => router.push("/(vendor)/room-visualizer")}
+  className="bg-white w-[48%] p-5 rounded-3xl shadow-sm border border-stone-100"
+>
+  <View className="h-10 w-10 bg-stone-100 rounded-2xl items-center justify-center mb-4">
+    <Ionicons name="color-wand-outline" size={20} color="#44403c" />
+  </View>
+  <Text className="font-bold text-stone-900 text-base">AI Visualizer</Text>
+  <Text className="text-xs text-stone-400 mt-1">Preview marble floor</Text>
+</Pressable>
         </View>
       </View>
 

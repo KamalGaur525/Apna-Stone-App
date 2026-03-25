@@ -15,6 +15,7 @@ import paymentRoutes from "./routes/payment.routes";
 import serviceRoutes from "./routes/service.routes";
 import planRoutes from "./routes/plan.routes";
 import guestRoutes from "./routes/guest.routes";
+import visualizerRouter from './routes/visualizer.routes';
 
 dotenv.config();
 
@@ -70,6 +71,7 @@ app.use("/api/payments", paymentRoutes);
 app.use("/api/services", serviceRoutes);
 app.use("/api/plans", planRoutes);
 app.use("/api/guest", guestRoutes);
+app.use('/api/visualizer', visualizerRouter);
 
 // 4. 404 Route Not Found Handler
 app.use((req: Request, res: Response) => {

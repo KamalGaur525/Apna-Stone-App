@@ -65,3 +65,8 @@ export const PAYMENT_ENDPOINTS = {
   CREATE_ORDER: "/payment/create-order",
   VERIFY_PAYMENT: "/payment/verify",
 };
+
+// ── Visualizer ──────────────────────────────────────────
+export const VISUALIZER_ENDPOINTS = {
+  GENERATE: "/visualizer/generate",
+};

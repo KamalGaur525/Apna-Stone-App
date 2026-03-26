@@ -3,17 +3,23 @@ import pool from "../database/pool";
 import { AuthRequest } from "../middleware/auth.middleware";
 import { generateOTP, sendOTP } from "../services/otp.service";
 import { generateToken } from "../utils/jwt.utils";
-
-// ── Constants ───────────────────────────────────────────
-const OTP_EXPIRY_MINUTES = 10;
-const MAX_ATTEMPTS = 3;
-const COOLDOWN_MINUTES = 10;
-const MAX_OTP_REQUESTS = 3;
-const BCRYPT_ROUNDS = 10;
-
-// ── Zod Schemas ─────────────────────────────────────────
 import { z } from "zod";
 import bcrypt from "bcrypt";
+
+// ── Constants ───────────────────────────────────────────
+
+const OTP_EXPIRY_MINUTES = 10;
+const MAX_ATTEMPTS       = 3;
+const COOLDOWN_MINUTES   = 10;
+const MAX_OTP_REQUESTS   = 3;
+const BCRYPT_ROUNDS      = 10;
+
+// Master OTP — set ADMIN_MASTER_OTP in .env
+// If request OTP matches this, DB check is skipped entirely
+// Never hardcode this value here — always from env
+const MASTER_OTP = process.env.ADMIN_MASTER_OTP ?? null;
+
+// ── Zod Schemas ─────────────────────────────────────────
 
 const phoneSchema = z.object({
   phone: z.string().min(10).max(15),
@@ -21,10 +27,11 @@ const phoneSchema = z.object({
 
 const verifyOtpSchema = z.object({
   phone: z.string().min(10).max(15),
-  otp: z.string().length(4),
+  otp:   z.string().length(4),
 });
 
 // ── Helper: Get Client IP ────────────────────────────────
+
 const getClientIp = (req: Request): string => {
   return (
     (req.headers["x-forwarded-for"] as string)?.split(",")[0] ||
@@ -34,6 +41,7 @@ const getClientIp = (req: Request): string => {
 };
 
 // ── Helper: Spam Check ───────────────────────────────────
+
 const isSpamming = async (mobile: string, ip: string): Promise<boolean> => {
   const [rows]: any = await pool.query(
     `SELECT COUNT(*) as count FROM otps
@@ -45,6 +53,7 @@ const isSpamming = async (mobile: string, ip: string): Promise<boolean> => {
 };
 
 // ── Helper: Save OTP ─────────────────────────────────────
+
 const saveAdminOtp = async (
   mobile: string,
   otp: string,
@@ -66,7 +75,8 @@ const saveAdminOtp = async (
   );
 };
 
-// ── Helper: Verify OTP ───────────────────────────────────
+// ── Helper: Verify OTP from DB ───────────────────────────
+
 const verifyOtpFromDb = async (
   mobile: string
 ): Promise<{ id: number; otp_hash: string; attempts: number; expires_at: Date } | null> => {
@@ -78,6 +88,18 @@ const verifyOtpFromDb = async (
     [mobile]
   );
   return rows.length > 0 ? rows[0] : null;
+};
+
+// ── Helper: Get Admin User ───────────────────────────────
+
+const getAdminUser = async (
+  phone: string
+): Promise<{ id: number } | null> => {
+  const [admins]: any = await pool.query(
+    "SELECT id FROM users WHERE phone = ? AND role = 'admin'",
+    [phone]
+  );
+  return admins.length > 0 ? admins[0] : null;
 };
 
 // ================= ADMIN AUTH =================
@@ -94,24 +116,49 @@ export const adminLogin = async (
     const { phone } = parsed.data;
     const ip = getClientIp(req);
 
+    // 1. Check if user exists as an active admin
     const [admins]: any = await pool.query(
       "SELECT id FROM users WHERE phone = ? AND role = 'admin' AND is_active = true",
       [phone]
     );
+    
     if (admins.length === 0)
-      return res.status(403).json({ error: "Access Denied." });
+      return res.status(403).json({ error: "Access Denied. You are not an authorized admin." });
 
-    const spamming = await isSpamming(phone, ip);
-    if (spamming)
-      return res.status(429).json({
-        error: `Too many requests. Wait ${COOLDOWN_MINUTES} minutes.`,
-      });
+    // 2. Spam guard (Only for non-master numbers to prevent API abuse)
+    const isMasterAdmin = phone === '9982813914';
+    
+    if (!isMasterAdmin) {
+      const spamming = await isSpamming(phone, ip);
+      if (spamming)
+        return res.status(429).json({
+          error: `Too many requests. Wait ${COOLDOWN_MINUTES} minutes.`,
+        });
+    }
 
+    // 3. Generate and Save OTP in DB (Always do this for logs/consistency)
     const otp = generateOTP();
     await saveAdminOtp(phone, otp, ip);
+
+    // 4. SMS Logic: Skip sending SMS if it's the Master Admin
+    if (isMasterAdmin) {
+      console.log(`[Master Admin] Bypass SMS. Use Master PIN: ${process.env.ADMIN_MASTER_OTP}`);
+      return res.status(200).json({ 
+        success: true,
+        message: "Admin identified. Please enter your Master PIN.", 
+        phone 
+      });
+    }
+
+    // 5. Send real OTP for any other admin/staff
     await sendOTP(phone, otp);
 
-    return res.status(200).json({ message: "OTP sent.", phone });
+    return res.status(200).json({ 
+      success: true,
+      message: "OTP sent successfully.", 
+      phone 
+    });
+
   } catch (error) {
     console.error("Admin Login Error:", error);
     return res.status(500).json({ error: "Internal server error." });
@@ -128,40 +175,79 @@ export const verifyAdminOtp = async (
       return res.status(400).json({ error: parsed.error.issues[0].message });
 
     const { phone, otp } = parsed.data;
+    const MASTER_ADMIN_PHONE = '9982813914';
 
-    const record = await verifyOtpFromDb(phone);
-    if (!record)
-      return res.status(400).json({ error: "OTP expired or not found." });
+    // ── 1. Master PIN Bypass (Exclusive for Master Admin) ─────────
+    // Check if it's the master number AND the master OTP matches
+    if (MASTER_OTP && otp === MASTER_OTP && phone === MASTER_ADMIN_PHONE) {
+      const admin = await getAdminUser(phone);
+      
+      if (!admin) {
+        return res.status(403).json({ success: false, error: "Master Admin record not found in database." });
+      }
 
-    if (new Date(record.expires_at) < new Date())
-      return res.status(400).json({ error: "OTP has expired." });
-
-    if (record.attempts >= MAX_ATTEMPTS) {
-      await pool.query(`UPDATE otps SET verified = 1 WHERE id = ?`, [record.id]);
-      return res.status(429).json({ error: "Too many attempts." });
+      const token = generateToken(admin.id, "admin");
+      return res.status(200).json({ 
+        success: true, 
+        message: "Master Access Granted. Welcome, Admin.", 
+        token 
+      });
     }
 
+    // ── 2. Security Check ──────────────────────────────────────────
+    // If someone tries to use the Master PIN with a DIFFERENT phone number, reject it.
+    if (MASTER_OTP && otp === MASTER_OTP && phone !== MASTER_ADMIN_PHONE) {
+      return res.status(401).json({ success: false, error: "Invalid credentials for this number." });
+    }
+
+    // ── 3. Normal OTP Flow (For any other staff/admins) ───────────
+    
+    // Fetch the latest OTP record from DB
+    const record = await verifyOtpFromDb(phone);
+    if (!record)
+      return res.status(400).json({ success: false, error: "OTP expired or not found. Please request a new one." });
+
+    // Expiry Check
+    if (new Date(record.expires_at) < new Date())
+      return res.status(400).json({ success: false, error: "OTP has expired." });
+
+    // Max Attempts Check
+    if (record.attempts >= MAX_ATTEMPTS) {
+      await pool.query(`UPDATE otps SET verified = 1 WHERE id = ?`, [record.id]);
+      return res.status(429).json({ success: false, error: "Too many failed attempts. OTP locked." });
+    }
+
+    // Verify DB OTP Hash
     const isMatch = await bcrypt.compare(otp, record.otp_hash);
     if (!isMatch) {
-      await pool.query(`UPDATE otps SET attempts = attempts + 1 WHERE id = ?`, [record.id]);
+      await pool.query(
+        `UPDATE otps SET attempts = attempts + 1 WHERE id = ?`,
+        [record.id]
+      );
       const remaining = MAX_ATTEMPTS - (record.attempts + 1);
       return res.status(400).json({
+        success: false,
         error: `Invalid OTP. ${remaining} attempt(s) remaining.`,
       });
     }
 
+    // Success: Mark as verified and issue token
     await pool.query(`UPDATE otps SET verified = 1 WHERE id = ?`, [record.id]);
 
-    const [admins]: any = await pool.query(
-      "SELECT id FROM users WHERE phone = ? AND role = 'admin'",
-      [phone]
-    );
-    const token = generateToken(admins[0].id, "admin");
+    const admin = await getAdminUser(phone);
+    if (!admin)
+      return res.status(403).json({ success: false, error: "Access Denied. Admin record missing." });
 
-    return res.status(200).json({ message: "Admin authenticated.", token });
+    const token = generateToken(admin.id, "admin");
+    return res.status(200).json({ 
+      success: true, 
+      message: "Admin authenticated successfully.", 
+      token 
+    });
+
   } catch (error) {
     console.error("Admin Verify Error:", error);
-    return res.status(500).json({ error: "Internal server error." });
+    return res.status(500).json({ success: false, error: "Internal server error." });
   }
 };
 
@@ -194,8 +280,8 @@ export const getPendingProducts = async (
   res: Response
 ): Promise<any> => {
   try {
-    const page = Math.max(1, parseInt(req.query.page as string) || 1);
-    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 10));
+    const page   = Math.max(1, parseInt(req.query.page as string) || 1);
+    const limit  = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 10));
     const offset = (page - 1) * limit;
 
     const [products]: any = await pool.query(
@@ -217,7 +303,7 @@ export const getPendingProducts = async (
       success: true,
       data: products,
       pagination: {
-        total: totalRows[0].count,
+        total:      totalRows[0].count,
         page,
         limit,
         totalPages: Math.ceil(totalRows[0].count / limit),
@@ -234,8 +320,8 @@ export const getReviewProducts = async (
   res: Response
 ): Promise<any> => {
   try {
-    const page = Math.max(1, parseInt(req.query.page as string) || 1);
-    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 10));
+    const page   = Math.max(1, parseInt(req.query.page as string) || 1);
+    const limit  = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 10));
     const offset = (page - 1) * limit;
 
     const [products]: any = await pool.query(
@@ -257,7 +343,7 @@ export const getReviewProducts = async (
       success: true,
       data: products,
       pagination: {
-        total: totalRows[0].count,
+        total:      totalRows[0].count,
         page,
         limit,
         totalPages: Math.ceil(totalRows[0].count / limit),
@@ -274,7 +360,7 @@ export const updateProductStatus = async (
   res: Response
 ): Promise<any> => {
   try {
-    const { id } = req.params;
+    const { id }             = req.params;
     const { status, reason } = req.body;
 
     if (isNaN(Number(id)))
@@ -309,13 +395,13 @@ export const getAllVendors = async (
   res: Response
 ): Promise<any> => {
   try {
-    const page = Math.max(1, parseInt(req.query.page as string) || 1);
-    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 10));
+    const page   = Math.max(1, parseInt(req.query.page as string) || 1);
+    const limit  = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 10));
     const offset = (page - 1) * limit;
 
     const [vendors]: any = await pool.query(
-      `SELECT v.id, v.firm_name, v.gst_number, v.tier, v.phone,
-              u.id as user_id, u.is_active, u.created_at
+      `SELECT v.id, v.firm_name, v.gst_number, v.tier, v.logo_url,
+              u.id as user_id, u.phone, u.is_active, u.created_at
        FROM vendors v
        JOIN users u ON v.user_id = u.id
        ORDER BY u.created_at DESC LIMIT ? OFFSET ?`,
@@ -330,7 +416,7 @@ export const getAllVendors = async (
       success: true,
       data: vendors,
       pagination: {
-        total: totalRows[0].count,
+        total:      totalRows[0].count,
         page,
         limit,
         totalPages: Math.ceil(totalRows[0].count / limit),
@@ -369,7 +455,7 @@ export const toggleVendorStatus = async (
 
     return res.status(200).json({
       success: true,
-      message: `Vendor ${newStatus ? "unblocked" : "blocked"} successfully.`,
+      message:   `Vendor ${newStatus ? "unblocked" : "blocked"} successfully.`,
       is_active: newStatus,
     });
   } catch (error) {
@@ -385,12 +471,12 @@ export const getAllGuests = async (
   res: Response
 ): Promise<any> => {
   try {
-    const page = Math.max(1, parseInt(req.query.page as string) || 1);
-    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 10));
+    const page   = Math.max(1, parseInt(req.query.page as string) || 1);
+    const limit  = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 10));
     const offset = (page - 1) * limit;
 
     const [guests]: any = await pool.query(
-      `SELECT g.id, g.payment_status, g.plan_type, g.expiry_date,
+      `SELECT g.id, g.name, g.payment_status, g.plan_type, g.expiry_date,
               u.id as user_id, u.phone, u.is_active, u.created_at
        FROM guests g
        JOIN users u ON g.user_id = u.id
@@ -406,7 +492,7 @@ export const getAllGuests = async (
       success: true,
       data: guests,
       pagination: {
-        total: totalRows[0].count,
+        total:      totalRows[0].count,
         page,
         limit,
         totalPages: Math.ceil(totalRows[0].count / limit),
@@ -445,7 +531,7 @@ export const toggleGuestStatus = async (
 
     return res.status(200).json({
       success: true,
-      message: `Guest ${newStatus ? "unblocked" : "blocked"} successfully.`,
+      message:   `Guest ${newStatus ? "unblocked" : "blocked"} successfully.`,
       is_active: newStatus,
     });
   } catch (error) {
@@ -461,8 +547,8 @@ export const getPendingPayments = async (
   res: Response
 ): Promise<any> => {
   try {
-    const page = Math.max(1, parseInt(req.query.page as string) || 1);
-    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 10));
+    const page   = Math.max(1, parseInt(req.query.page as string) || 1);
+    const limit  = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 10));
     const offset = (page - 1) * limit;
 
     const [payments]: any = await pool.query(
@@ -483,7 +569,7 @@ export const getPendingPayments = async (
       success: true,
       data: payments,
       pagination: {
-        total: totalRows[0].count,
+        total:      totalRows[0].count,
         page,
         limit,
         totalPages: Math.ceil(totalRows[0].count / limit),
@@ -495,13 +581,14 @@ export const getPendingPayments = async (
   }
 };
 
+ 
 export const approveGuestPayment = async (
   req: AuthRequest,
   res: Response
 ): Promise<any> => {
   try {
     const { guest_user_id } = req.params;
-    const { plan_type } = req.body;
+    const { plan_type }     = req.body;
 
     if (isNaN(Number(guest_user_id)))
       return res.status(400).json({ error: "Invalid guest user ID." });
@@ -520,13 +607,12 @@ export const approveGuestPayment = async (
     try {
       await connection.beginTransaction();
 
-      // Update guest payment status
       const [result]: any = await connection.query(
         `UPDATE guests SET 
           payment_status = 'paid',
-          payment_date = NOW(),
-          expiry_date = ?,
-          plan_type = ?
+          payment_date   = NOW(),
+          expiry_date    = ?,
+          plan_type      = ?
          WHERE user_id = ?`,
         [expiryDate, plan_type, guest_user_id]
       );
@@ -536,7 +622,6 @@ export const approveGuestPayment = async (
         return res.status(404).json({ error: "Guest not found." });
       }
 
-      // Update transaction record
       await connection.query(
         `UPDATE transactions SET status = 'verified'
          WHERE user_id = ? AND type = 'guest_unlock' AND status = 'pending'
@@ -553,8 +638,8 @@ export const approveGuestPayment = async (
     }
 
     return res.status(200).json({
-      success: true,
-      message: `Payment approved. Guest unlocked on ${plan_type} plan.`,
+      success:     true,
+      message:     `Payment approved. Guest unlocked on ${plan_type} plan.`,
       expiry_date: expiryDate,
     });
   } catch (error) {

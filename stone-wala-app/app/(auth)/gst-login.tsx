@@ -1,6 +1,6 @@
-import { checkGst, registerVendor } from "@/services/authService";
+import { checkGst, registerVendor, verifyGSTNumber } from "@/services/authService";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -12,6 +12,7 @@ import {
 } from "react-native";
 
 type Tier = "Godown" | "Factory" | "Stone Seller";
+type GstVerifyState = "idle" | "checking" | "valid" | "invalid" | "registered";
 
 const TIERS: Tier[] = ["Godown", "Factory", "Stone Seller"];
 const GST_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
@@ -30,6 +31,48 @@ export default function GSTLogin() {
   const [location, setLocation] = useState("");
   const [registerLoading, setRegisterLoading] = useState(false);
 
+  // ── GST Verify State ────────────────────────────────
+  const [gstVerifyState, setGstVerifyState] = useState<GstVerifyState>("idle");
+  const [gstVerifyMessage, setGstVerifyMessage] = useState("");
+
+  // ── Auto verify on 15 chars ─────────────────────────
+  useEffect(() => {
+    if (gst.length < 15) {
+      setGstVerifyState("idle");
+      setGstVerifyMessage("");
+      return;
+    }
+    if (!GST_REGEX.test(gst)) {
+      setGstVerifyState("invalid");
+      setGstVerifyMessage("Invalid GST format. Please check and re-enter.");
+      return;
+    }
+    const verify = async () => {
+      setGstVerifyState("checking");
+      try {
+        const result = await verifyGSTNumber(gst);
+        if (result.alreadyRegistered) {
+          setGstVerifyState("registered");
+          setGstVerifyMessage("GST already registered. Click below to login.");
+          return;
+        }
+        if (!result.valid) {
+          setGstVerifyState("invalid");
+          setGstVerifyMessage(result.message || "GST not found or inactive.");
+          return;
+        }
+        setGstVerifyState("valid");
+        setGstVerifyMessage("GST verified successfully!");
+        if (result.firmName) setFirmName(result.firmName);
+        if (result.state) setLocation(result.state);
+      } catch {
+        setGstVerifyState("invalid");
+        setGstVerifyMessage("Could not verify GST. Check your connection.");
+      }
+    };
+    verify();
+  }, [gst]);
+
   // ── GST Validation ──────────────────────────────────
   const isValidGST = (value: string) => GST_REGEX.test(value);
 
@@ -45,30 +88,41 @@ export default function GSTLogin() {
       Alert.alert("Invalid Format", "Please enter a valid GST number.");
       return;
     }
-
-    try {
-      setLoading(true);
-      const response = await checkGst(formattedGST);
-
-      if (response.exists) {
-        router.push({
-          pathname: "/(auth)/gst-otp",
-          params: {
-            gst: formattedGST,
-            phone: response.phone,
-            flow: "login",
-          },
-        });
-      } else {
-        setShowRegisterForm(true);
-      }
-    } catch (error: any) {
-      const message =
-        error?.response?.data?.error || "Unable to verify GST. Try again.";
-      Alert.alert("Verification Failed", message);
-    } finally {
-      setLoading(false);
+    if (gstVerifyState === "invalid") {
+      Alert.alert("Invalid GST", gstVerifyMessage || "Please enter a valid GST number.");
+      return;
     }
+    if (gstVerifyState === "registered") {
+      // Already registered — go to login OTP directly
+      try {
+        setLoading(true);
+        const response = await checkGst(formattedGST);
+        if (response.exists) {
+          router.push({
+            pathname: "/(auth)/gst-otp",
+            params: {
+              gst: formattedGST,
+              phone: response.phone,
+              flow: "login",
+            },
+          });
+        }
+      } catch (error: any) {
+        const message =
+          error?.response?.data?.error || "Unable to verify GST. Try again.";
+        Alert.alert("Verification Failed", message);
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+    if (gstVerifyState !== "valid") {
+      Alert.alert("Please Wait", "GST verification in progress.");
+      return;
+    }
+
+    // GST is valid + new — show registration form
+    setShowRegisterForm(true);
   };
 
   // ── Step 2: Register New Vendor ─────────────────────
@@ -80,7 +134,6 @@ export default function GSTLogin() {
     const formattedEmail = email.trim();
     const formattedLocation = location.trim();
 
-    // ── Validation ──────────────────────────────────
     if (formattedPhone.length < 10) {
       Alert.alert("Invalid Phone", "Please enter a valid 10-digit phone number.");
       return;
@@ -209,40 +262,104 @@ export default function GSTLogin() {
                 placeholderTextColor="#a8a29e"
                 maxLength={15}
                 autoCapitalize="characters"
-                className="bg-stone-50 border border-stone-200 rounded-2xl px-4 py-4 text-base text-stone-900 tracking-widest font-mono"
+                className="bg-stone-50 rounded-2xl px-4 py-4 text-base text-stone-900 tracking-widest font-mono"
+                style={{
+                  borderWidth: 1,
+                  borderColor:
+                    gstVerifyState === "valid" || gstVerifyState === "registered"
+                      ? "#f59e0b"
+                      : gstVerifyState === "invalid"
+                      ? "#ef4444"
+                      : "#e7e5e4",
+                }}
               />
+
+              {/* Status Messages */}
+              {gstVerifyState === "checking" && (
+                <View className="flex-row items-center mt-2 gap-1">
+                  <ActivityIndicator size="small" color="#f59e0b" />
+                  <Text className="text-amber-500 text-xs">Verifying GST...</Text>
+                </View>
+              )}
+              {gstVerifyState === "valid" && (
+                <Text
+                  className="text-xs mt-2 font-semibold"
+                  style={{ color: "#f59e0b" }}
+                >
+                  ✓ {gstVerifyMessage}
+                </Text>
+              )}
+              {gstVerifyState === "registered" && (
+                <Text
+                  className="text-xs mt-2 font-semibold"
+                  style={{ color: "#d97706" }}
+                >
+                  ⚠ {gstVerifyMessage}
+                </Text>
+              )}
+              {gstVerifyState === "invalid" && (
+                <Text className="text-red-400 text-xs mt-2">
+                  {gstVerifyMessage}
+                </Text>
+              )}
 
               <View className="flex-row justify-between items-center mt-3">
                 <Text className="text-xs text-stone-400">
                   Format: 27AAAAA0000A1Z5
                 </Text>
-                <Text className={`text-xs font-semibold ${gst.length === 15 ? "text-amber-500" : "text-stone-300"}`}>
+                <Text
+                  className="text-xs font-semibold"
+                  style={{ color: gst.length === 15 ? "#f59e0b" : "#d4d0cc" }}
+                >
                   {gst.length}/15
                 </Text>
               </View>
 
               <View className="mt-3 h-1 bg-stone-100 rounded-full overflow-hidden">
                 <View
-                  className={`h-1 rounded-full ${gst.length === 15 ? "bg-amber-400" : "bg-stone-300"}`}
-                  style={{ width: `${(gst.length / 15) * 100}%` }}
+                  style={{
+                    height: 4,
+                    borderRadius: 999,
+                    backgroundColor: gst.length === 15 ? "#fbbf24" : "#d4d0cc",
+                    width: `${(gst.length / 15) * 100}%`,
+                  }}
                 />
               </View>
             </View>
 
             <Pressable
               onPress={handleVerify}
-              disabled={loading}
-              className="bg-stone-900 rounded-2xl py-4 px-5 active:opacity-80 shadow-sm items-center"
+              disabled={
+                loading ||
+                gstVerifyState === "checking" ||
+                gstVerifyState === "invalid"
+              }
+              className="rounded-2xl py-4 px-5 active:opacity-80 shadow-sm items-center"
+              style={{
+                backgroundColor:
+                  loading ||
+                  gstVerifyState === "checking" ||
+                  gstVerifyState === "invalid"
+                    ? "#a8a29e"
+                    : "#1c1917",
+              }}
             >
               {loading ? (
                 <ActivityIndicator color="white" />
               ) : (
                 <>
                   <Text className="text-white text-center text-base font-bold tracking-wide">
-                    Verify GST Number
+                    {gstVerifyState === "registered"
+                      ? "Login with this GST"
+                      : "Verify GST Number"}
                   </Text>
-                  <Text className="text-stone-400 text-center text-xs mt-1">
-                    Secure verification via GSTIN portal
+                  <Text
+                    className="text-center text-xs mt-1"
+                    style={{ color: "#a8a29e" }}
+                  >
+                    {gstVerifyState === "registered"
+                      ? "OTP will be sent to registered mobile"
+                      : "Secure verification via GSTIN portal"}
                   </Text>
                 </>
               )}
@@ -274,7 +391,10 @@ export default function GSTLogin() {
                   GST Number
                 </Text>
                 <View className="bg-stone-100 border border-stone-200 rounded-2xl px-4 py-4">
-                  <Text className="text-stone-400 tracking-widest font-mono text-base">
+                  <Text
+                    className="tracking-widest font-mono text-base"
+                    style={{ color: "#a8a29e" }}
+                  >
                     {gst.toUpperCase()}
                   </Text>
                 </View>
@@ -287,10 +407,10 @@ export default function GSTLogin() {
                 </Text>
                 <TextInput
                   value={phone}
-                   onChangeText={(text) => {
-    const cleaned = text.replace(/[^0-9]/g, "");
-    setPhone(cleaned);
-  }}
+                  onChangeText={(text) => {
+                    const cleaned = text.replace(/[^0-9]/g, "");
+                    setPhone(cleaned);
+                  }}
                   placeholder="98XXXXXXXX"
                   placeholderTextColor="#a8a29e"
                   maxLength={10}
@@ -299,17 +419,33 @@ export default function GSTLogin() {
                 />
               </View>
 
-              {/* Firm Name — Required */}
+              {/* Firm Name — auto-filled or manual */}
               <View>
                 <Text className="text-stone-700 text-sm font-semibold mb-2">
                   Firm Name <Text className="text-amber-500">*</Text>
+                  {firmName !== "" && gstVerifyState === "valid" && (
+                    <Text
+                      className="text-xs font-normal"
+                      style={{ color: "#f59e0b" }}
+                    >
+                      {" "}
+                      (auto-filled from GST)
+                    </Text>
+                  )}
                 </Text>
                 <TextInput
                   value={firmName}
                   onChangeText={setFirmName}
                   placeholder="Enter your firm name"
                   placeholderTextColor="#a8a29e"
-                  className="bg-stone-50 border border-stone-200 rounded-2xl px-4 py-4 text-base text-stone-900"
+                  className="bg-stone-50 rounded-2xl px-4 py-4 text-base text-stone-900"
+                  style={{
+                    borderWidth: 1,
+                    borderColor:
+                      firmName !== "" && gstVerifyState === "valid"
+                        ? "#f59e0b"
+                        : "#e7e5e4",
+                  }}
                 />
               </View>
 
@@ -361,14 +497,17 @@ export default function GSTLogin() {
               <View>
                 <Text className="text-stone-700 text-sm font-semibold mb-2">
                   WhatsApp Number
-                  <Text className="text-stone-400 text-xs font-normal"> (optional)</Text>
+                  <Text className="text-stone-400 text-xs font-normal">
+                    {" "}
+                    (optional)
+                  </Text>
                 </Text>
                 <TextInput
                   value={whatsapp}
                   onChangeText={(text) => {
-  const cleaned = text.replace(/[^0-9]/g, "");
-  setWhatsapp(cleaned);
-}}
+                    const cleaned = text.replace(/[^0-9]/g, "");
+                    setWhatsapp(cleaned);
+                  }}
                   placeholder="98XXXXXXXX"
                   placeholderTextColor="#a8a29e"
                   maxLength={10}
@@ -381,7 +520,10 @@ export default function GSTLogin() {
               <View>
                 <Text className="text-stone-700 text-sm font-semibold mb-2">
                   Email Address
-                  <Text className="text-stone-400 text-xs font-normal"> (optional)</Text>
+                  <Text className="text-stone-400 text-xs font-normal">
+                    {" "}
+                    (optional)
+                  </Text>
                 </Text>
                 <TextInput
                   value={email}
@@ -398,7 +540,10 @@ export default function GSTLogin() {
               <View>
                 <Text className="text-stone-700 text-sm font-semibold mb-2">
                   Location / Address
-                  <Text className="text-stone-400 text-xs font-normal"> (optional)</Text>
+                  <Text className="text-stone-400 text-xs font-normal">
+                    {" "}
+                    (optional)
+                  </Text>
                 </Text>
                 <TextInput
                   value={location}
@@ -424,7 +569,10 @@ export default function GSTLogin() {
                   <Text className="text-white text-center text-base font-bold tracking-wide">
                     Register & Get OTP
                   </Text>
-                  <Text className="text-stone-400 text-center text-xs mt-1">
+                  <Text
+                    className="text-center text-xs mt-1"
+                    style={{ color: "#a8a29e" }}
+                  >
                     OTP will be sent to your mobile
                   </Text>
                 </>

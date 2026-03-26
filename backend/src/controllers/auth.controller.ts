@@ -442,6 +442,94 @@ export const verifyVendorOtp = async (
 
 // ================= VENDOR REGISTER =================
 
+
+// ================= VERIFY GST =================
+
+export const verifyGST = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  try {
+    const schema = z.object({
+      gst_number: z
+        .string()
+        .regex(
+          /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/,
+          "Invalid GST format."
+        ),
+    });
+
+    const parsed = schema.safeParse(req.body);
+    if (!parsed.success)
+      return res.status(400).json({ error: parsed.error.issues[0].message });
+
+    const { gst_number } = parsed.data;
+
+    // 1. Already registered check
+    const [existing]: any = await pool.query(
+      "SELECT id FROM vendors WHERE gst_number = ?",
+      [gst_number]
+    );
+    if (existing.length > 0) {
+      return res.status(200).json({
+        success: true,
+        alreadyRegistered: true,
+        message: "GST already registered. Please login instead.",
+      });
+    }
+
+    // 2. Hit gstincheck.co.in
+    const apiKey = process.env.GST_API_KEY;
+    if (!apiKey) {
+      return res.status(500).json({ error: "GST verification service unavailable." });
+    }
+
+    let gstResponse: any;
+    try {
+      const res2 = await fetch(
+        `https://sheet.gstincheck.co.in/check/${apiKey}/${gst_number}`,
+        { signal: AbortSignal.timeout(10000) }
+      );
+      gstResponse = await res2.json();
+    } catch {
+      return res.status(503).json({ error: "GST service timed out. Try again." });
+    }
+
+    // 3. Parse response
+    if (!gstResponse.flag) {
+      return res.status(200).json({
+        success: true,
+        valid: false,
+        message: "GST number not found in government records.",
+      });
+    }
+
+    const data = gstResponse.data;
+
+    if (data.sts !== "Active") {
+      return res.status(200).json({
+        success: true,
+        valid: false,
+        message: `GST is ${data.sts}. Only active GST allowed.`,
+      });
+    }
+
+    // 4. Valid — return details
+    return res.status(200).json({
+      success: true,
+      valid: true,
+      alreadyRegistered: false,
+      firmName: data.tradeNam || data.lgnm || "",
+      state: data.pradr?.addr?.stcd || "",
+      businessType: data.ctb || "",
+    });
+  } catch (error) {
+    console.error("verifyGST error:", error);
+    return res.status(500).json({ error: "Internal server error." });
+  }
+}; 
+
+
 export const registerVendor = async (
   req: Request,
   res: Response
@@ -555,3 +643,4 @@ export const verifyVendorRegisterOtp = async (
     return res.status(500).json({ error: "Internal server error." });
   }
 };
+

@@ -6,6 +6,7 @@ import {
   verifyVendorOtp,
   registerVendor,
   saveGuestProfile,
+  verifyGST,
   verifyVendorRegisterOtp,
 } from "../controllers/auth.controller";
 import { requireAuth, requireRole } from "../middleware/auth.middleware";
@@ -21,6 +22,7 @@ router.post("/vendor/check-gst", checkGstAndSendOtp);
 router.post("/vendor/verify-otp", verifyVendorOtp);
 
 // ================= VENDOR REGISTER ROUTES =================
+router.post("/vendor/verify-gst", verifyGST);
 router.post("/vendor/register", registerVendor);
 router.post("/vendor/register/verify-otp", verifyVendorRegisterOtp);
 

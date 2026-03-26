@@ -13,6 +13,7 @@ export const API_CONFIG = {
 export const AUTH_ENDPOINTS = {
   // Vendor
   GST_CHECK: "/auth/vendor/check-gst",
+   VERIFY_GST: "/auth/vendor/verify-gst",
   GST_VERIFY_OTP: "/auth/vendor/verify-otp",
   VENDOR_REGISTER: "/auth/vendor/register",
   VENDOR_REGISTER_VERIFY_OTP: "/auth/vendor/register/verify-otp",

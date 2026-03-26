@@ -104,3 +104,12 @@ export const saveGuestProfile = async (
   });
   return res.data;
 };
+
+// GST Verify — registration se pehle
+export const verifyGSTNumber = async (gstNumber: string) => {
+  const res = await api.post(AUTH_ENDPOINTS.VERIFY_GST, {
+    gst_number: gstNumber,
+  });
+  return res.data;
+  // Returns: { success, valid, alreadyRegistered, firmName, state, businessType, message }
+};

@@ -31,10 +31,24 @@ export const getAllTypes = async (req: Request, res: Response): Promise<any> => 
 export const deleteServiceType = async (req: AuthRequest, res: Response): Promise<any> => {
   try {
     const { id } = req.params;
-    await pool.query("UPDATE service_types SET is_active = false WHERE id = ?", [id]);
-    return res.status(200).json({ success: true, message: "Type soft deleted successfully." });
-  } catch (error) {
+
+    // UPDATE ko DELETE mein badal diya
+    await pool.query("DELETE FROM service_types WHERE id = ?", [id]);
+
+    return res.status(200).json({ 
+      success: true, 
+      message: "Service category permanently deleted from database." 
+    });
+  } catch (error: any) {
     console.error("DeleteType Error:", error);
+
+    // Agar is type ke andar providers mapped hain, toh database delete nahi karne dega
+    if (error.code === 'ER_ROW_IS_REFERENCED_2') {
+      return res.status(400).json({ 
+        error: "Cannot delete: This category has active providers. Delete the providers first." 
+      });
+    }
+
     return res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -135,8 +149,11 @@ export const updateProvider = async (req: AuthRequest, res: Response): Promise<a
 export const deleteProvider = async (req: AuthRequest, res: Response): Promise<any> => {
   try {
     const { id } = req.params;
-    await pool.query("UPDATE service_providers SET is_active = false WHERE id = ?", [id]);
-    return res.status(200).json({ success: true, message: "Provider soft deleted." });
+    
+    // Naya Code: Seedha database se record udayega (Hard Delete)
+    await pool.query("DELETE FROM service_providers WHERE id = ?", [id]);
+    
+    return res.status(200).json({ success: true, message: "Provider permanently deleted." });
   } catch (error) {
     console.error("DeleteProvider Error:", error);
     return res.status(500).json({ error: "Internal server error" });

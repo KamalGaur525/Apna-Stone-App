@@ -9,6 +9,8 @@ import {
   LogOut,
   Menu,
   X,
+  Layers,
+  HardHat,
   ShieldCheck,
 } from 'lucide-react';
 
@@ -27,6 +29,8 @@ export default function Layout() {
     { name: 'Products', path: '/products', icon: Package },
     { name: 'Vendors', path: '/vendors', icon: Users },
     { name: 'Guests', path: '/guests', icon: UserSquare },
+    { name: 'Categories', path: '/categories', icon: Layers },
+    { name: 'Services', path: '/services', icon: HardHat },
   ];
 
   const SidebarContent = ({ onNav }: { onNav?: () => void }) => (

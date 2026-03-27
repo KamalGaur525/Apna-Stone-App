@@ -11,6 +11,8 @@ import Dashboard from './pages/Dashboard';
 import Products  from './pages/Products';
 import Vendors   from './pages/Vendors';
 import Guests    from './pages/Guests';
+import Categories from './pages/Categories';
+import Services from './pages/Services';
 
 // ─── Hydration Guard ──────────────────────────────────────────────────────────
 
@@ -87,6 +89,8 @@ export default function App() {
             <Route path="products" element={<Products />} />
             <Route path="vendors"  element={<Vendors />}  />
             <Route path="guests"   element={<Guests />}   />
+            <Route path="categories" element={<Categories />} />
+            <Route path="services" element={<Services />} />
           </Route>
 
           {/* 404 — unknown routes go to login if logged out, home if logged in */}

@@ -1,5 +1,4 @@
 import express, { Application, Request, Response, NextFunction } from "express";
-import path from "path";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
@@ -22,47 +21,47 @@ dotenv.config();
 const app: Application = express();
 const PORT = process.env.PORT || 5000;
 const isProduction = process.env.NODE_ENV === 'production';
+
 if (isProduction && !process.env.FRONTEND_URL) {
-    console.error("🔴 FATAL ERROR: FRONTEND_URL is not defined in .env");
-    process.exit(1);
+  console.error("🔴 FATAL ERROR: FRONTEND_URL is not defined in .env");
+  process.exit(1);
 }
 
 // 1. Essential Security & Middlewares
-app.use(helmet()); 
+app.use(helmet());
 app.use(cors({
-    origin: isProduction ? (process.env.FRONTEND_URL as string) : "*", 
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"], // ✅ PATCH Add ho gaya
-    credentials: true
-})); 
-app.use(express.json({ limit: "10mb" })); // ✅ 10mb limit set
-app.use(express.urlencoded({ extended: true, limit: "10mb" })); // ✅ 10mb limit set
+  origin: isProduction ? (process.env.FRONTEND_URL as string) : "*",
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+  credentials: true
+}));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
-// Logger: Sirf development mein 'dev' mode use karein
 if (!isProduction) {
-    app.use(morgan("dev")); 
+  app.use(morgan("dev"));
 }
 
-// 2. Health Check API (With DB Connectivity check)
+// 2. Health Check API
 app.get("/health", async (req: Request, res: Response) => {
   try {
     await pool.query("SELECT 1");
-    res.status(200).json({ 
-      status: "success", 
-      message: "Stone Wala API is running and Database is connected!" 
+    res.status(200).json({
+      status: "success",
+      message: "Stone Wala API is running and Database is connected!"
     });
   } catch (error) {
     console.error("Database connection failed:", error);
-    res.status(500).json({ 
-      status: "error", 
-      message: "API is running, but Database connection failed." 
+    res.status(500).json({
+      status: "error",
+      message: "API is running, but Database connection failed."
     });
   }
 });
 
 // 3. Main API Routes
-app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
+// ✅ REMOVED: express.static for /uploads — files now served from S3
 app.use("/api/auth", authRoutes);
-app.use("/api/vendor", vendorRoutes);  
+app.use("/api/vendor", vendorRoutes);
 app.use("/api/buyer", buyerRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/admin", adminRoutes);
@@ -73,25 +72,23 @@ app.use("/api/plans", planRoutes);
 app.use("/api/guest", guestRoutes);
 app.use('/api/visualizer', visualizerRouter);
 
-// 4. 404 Route Not Found Handler
+// 4. 404 Handler
 app.use((req: Request, res: Response) => {
-    res.status(404).json({
-        success: false,
-        error: "Route not found"
-    });
+  res.status(404).json({
+    success: false,
+    error: "Route not found"
+  });
 });
 
-// 5. Global Error Handler (Centralized System)
+// 5. Global Error Handler
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-    const statusCode = err.status || 500;
-    
-    console.error(`[Error] ${req.method} ${req.url}:`, err.stack);
-
-    res.status(statusCode).json({
-        success: false,
-        error: isProduction ? "Internal Server Error" : err.message,
-        stack: isProduction ? null : err.stack
-    });
+  const statusCode = err.status || 500;
+  console.error(`[Error] ${req.method} ${req.url}:`, err.stack);
+  res.status(statusCode).json({
+    success: false,
+    error: isProduction ? "Internal Server Error" : err.message,
+    stack: isProduction ? null : err.stack
+  });
 });
 
 // 6. Server Start

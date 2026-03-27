@@ -3,15 +3,9 @@ import { z } from "zod";
 import pool from "../database/pool";
 import { generateToken } from "../utils/jwt.utils";
 import { AuthRequest } from "../middleware/auth.middleware";
+import { uploadToS3, deleteFromS3 } from "../utils/uploadToS3";
 
 // --- Register Vendor Section ---
-
-/* const TIER_PRICES = {
-  "Godown": 300,
-  "Factory": 500,
-  "Stone Seller": 800,
-}; 
-*/
 
 const gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
 
@@ -22,22 +16,20 @@ const registerVendorSchema = z.object({
   tier: z.enum(["Godown", "Factory", "Stone Seller"], {
     message: "Invalid tier selected. Must be Godown, Factory, or Stone Seller.",
   }),
-  payment_ref_id: z.string().min(5, "Payment Reference ID is required"), 
+  payment_ref_id: z.string().min(5, "Payment Reference ID is required"),
 });
 
 export const registerVendor = async (req: Request, res: Response): Promise<any> => {
-  let connection; 
+  let connection;
   try {
     const parsed = registerVendorSchema.safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ error: parsed.error.issues[0].message });
 
     const { phone, gst_number, firm_name, tier, payment_ref_id } = parsed.data;
 
-    // 1. Check if user already exists in USERS table (The ONLY source of truth for phone)
     const [existingUser]: any = await pool.query("SELECT id FROM users WHERE phone = ?", [phone]);
     if (existingUser.length > 0) return res.status(400).json({ error: "Phone number already registered." });
 
-    // 2. Check GST in VENDORS table
     const [existingGst]: any = await pool.query("SELECT id FROM vendors WHERE gst_number = ?", [gst_number]);
     if (existingGst.length > 0) return res.status(400).json({ error: "GST number already registered." });
 
@@ -46,14 +38,12 @@ export const registerVendor = async (req: Request, res: Response): Promise<any> 
     connection = await pool.getConnection();
     await connection.beginTransaction();
 
-    // 3. Create User first
     const [userResult]: any = await connection.query(
       "INSERT INTO users (phone, role, is_active) VALUES (?, 'vendor', true)",
       [phone]
     );
     const userId = userResult.insertId;
 
-    // 4. Create Vendor profile (Linking to User via ID, no phone stored here)
     await connection.query(
       "INSERT INTO vendors (user_id, gst_number, firm_name, tier) VALUES (?, ?, ?, ?)",
       [userId, gst_number, firm_name, tier]
@@ -73,35 +63,31 @@ export const registerVendor = async (req: Request, res: Response): Promise<any> 
   }
 };
 
-
-
 export const updateVendorProfile = async (req: AuthRequest, res: Response): Promise<any> => {
   try {
     const userId = req.user?.id;
-    // 🔴 Severity Fix: User ID check (Security)
     if (!userId) return res.status(401).json({ error: "Unauthorized. User ID missing." });
 
-    const { 
-      firm_name, 
-      gst_number, 
-      tier, 
-      logo_url, 
-      whatsapp, 
-      email, 
-      location, 
+    const {
+      firm_name,
+      gst_number,
+      tier,
+      logo_url,
+      whatsapp,
+      email,
+      location,
       about,
-  facebook,    
-  instagram,   
-  website,  
+      facebook,
+      instagram,
+      website,
     } = req.body;
 
-    // 🔴 1. Critical Validation: GST Regex (Indian Standard)
     const gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
     const cleanGST = gst_number?.toUpperCase().trim();
 
     if (!cleanGST || !gstRegex.test(cleanGST)) {
-      return res.status(400).json({ 
-        error: "Invalid GST Format. Ek valid 15-digit GST number zaroori hai." 
+      return res.status(400).json({
+        error: "Invalid GST Format. Ek valid 15-digit GST number zaroori hai."
       });
     }
 
@@ -109,8 +95,6 @@ export const updateVendorProfile = async (req: AuthRequest, res: Response): Prom
       return res.status(400).json({ error: "Valid Firm Name (min 3 chars) mandatory hai." });
     }
 
-    // 🟢 2. Update Query
-    // 🟡 Severity Fix: Using '??' instead of '||' to preserve empty values if needed
     const [result]: any = await pool.query(
       `UPDATE vendors SET 
         gst_number = ?, 
@@ -119,9 +103,9 @@ export const updateVendorProfile = async (req: AuthRequest, res: Response): Prom
         logo_url = ?, 
         whatsapp = ?, 
         email = ?, 
-          facebook = ?,     
-  instagram = ?,    
-  website = ?,   
+        facebook = ?,     
+        instagram = ?,    
+        website = ?,   
         location = ?, 
         about = ? 
        WHERE user_id = ?`,
@@ -133,8 +117,8 @@ export const updateVendorProfile = async (req: AuthRequest, res: Response): Prom
         whatsapp ?? null,
         email ?? null,
         facebook ?? null,
-  instagram ?? null,
-  website ?? null,
+        instagram ?? null,
+        website ?? null,
         location ?? null,
         about ?? null,
         userId
@@ -145,45 +129,34 @@ export const updateVendorProfile = async (req: AuthRequest, res: Response): Prom
       return res.status(404).json({ error: "Vendor profile not found." });
     }
 
-    return res.status(200).json({ 
-      success: true, 
-      message: "Vendor profile updated successfully!" 
+    return res.status(200).json({
+      success: true,
+      message: "Vendor profile updated successfully!"
     });
 
   } catch (error: any) {
-    // 🟢 Fixed: Structured console logging
     console.error("UpdateVendor Error:", error);
-    
     if (error.code === 'ER_DUP_ENTRY') {
       return res.status(400).json({ error: "Ye GST Number pehle se registered hai." });
     }
-    
     return res.status(500).json({ error: "Internal server error" });
   }
 };
 
-// ── GET Vendor Dashboard Stats ──────────────────────
-export const getVendorDashboard = async (
-  req: AuthRequest,
-  res: Response
-): Promise<any> => {
+export const getVendorDashboard = async (req: AuthRequest, res: Response): Promise<any> => {
   try {
     const userId = req.user?.id;
-    if (!userId)
-      return res.status(401).json({ error: "Unauthorized." });
+    if (!userId) return res.status(401).json({ error: "Unauthorized." });
 
-    // Vendor ID nikalo
     const [vendors]: any = await pool.query(
       "SELECT id, firm_name, tier, logo_url FROM vendors WHERE user_id = ?",
       [userId]
     );
 
-    if (vendors.length === 0)
-      return res.status(404).json({ error: "Vendor not found." });
+    if (vendors.length === 0) return res.status(404).json({ error: "Vendor not found." });
 
     const vendor = vendors[0];
 
-    // Products stats
     const [productStats]: any = await pool.query(
       `SELECT 
         COUNT(*) as total,
@@ -194,7 +167,6 @@ export const getVendorDashboard = async (
       [vendor.id]
     );
 
-    // Subscription status
     const [subs]: any = await pool.query(
       `SELECT t.status, t.created_at, sp.plan_type
        FROM transactions t
@@ -230,15 +202,10 @@ export const getVendorDashboard = async (
   }
 };
 
-// ── GET Vendor Profile ───────────────────────────────
-export const getVendorProfile = async (
-  req: AuthRequest,
-  res: Response
-): Promise<any> => {
+export const getVendorProfile = async (req: AuthRequest, res: Response): Promise<any> => {
   try {
     const userId = req.user?.id;
-    if (!userId)
-      return res.status(401).json({ error: "Unauthorized." });
+    if (!userId) return res.status(401).json({ error: "Unauthorized." });
 
     const [vendors]: any = await pool.query(
       `SELECT v.*, u.phone
@@ -248,24 +215,16 @@ export const getVendorProfile = async (
       [userId]
     );
 
-    if (vendors.length === 0)
-      return res.status(404).json({ error: "Vendor not found." });
+    if (vendors.length === 0) return res.status(404).json({ error: "Vendor not found." });
 
-    return res.status(200).json({
-      success: true,
-      data: vendors[0],
-    });
+    return res.status(200).json({ success: true, data: vendors[0] });
   } catch (error) {
     console.error("GetVendorProfile Error:", error);
     return res.status(500).json({ error: "Internal server error." });
   }
 };
 
-// ── Get Subscription Plans ───────────────────────────
-export const getSubscriptionPlans = async (
-  req: AuthRequest,
-  res: Response
-): Promise<any> => {
+export const getSubscriptionPlans = async (req: AuthRequest, res: Response): Promise<any> => {
   try {
     const [plans]: any = await pool.query(
       "SELECT id, plan_type, price FROM subscription_plans WHERE is_active = true ORDER BY price ASC"
@@ -277,27 +236,40 @@ export const getSubscriptionPlans = async (
   }
 };
 
-export const uploadVendorLogo = async (
-  req: AuthRequest,
-  res: Response
-): Promise<any> => {
+/**
+ * @route   POST /api/vendor/logo
+ * @desc    Upload vendor logo — saves to S3, deletes old logo from S3
+ */
+export const uploadVendorLogo = async (req: AuthRequest, res: Response): Promise<any> => {
   try {
     const userId = req.user?.id;
     if (!userId) return res.status(401).json({ error: "Unauthorized. User ID missing." });
 
     if (!req.file) return res.status(400).json({ error: "No logo file provided." });
 
-    // ✅ Same path pattern as products: /uploads/logos/filename.ext
-    const logoUrl = `/uploads/logos/${req.file.filename}`;
+    // Fetch existing logo URL for S3 cleanup
+    const [vendor]: any = await pool.query(
+      "SELECT logo_url FROM vendors WHERE user_id = ?",
+      [userId]
+    );
+    if (vendor.length === 0) return res.status(404).json({ error: "Vendor not found." });
 
-    const [result]: any = await pool.query(
+    // Upload new logo to S3
+    const logoUrl = await uploadToS3(
+      req.file.buffer,
+      req.file.originalname,
+      req.file.mimetype,
+      "logos"
+    );
+
+    // Update DB with new S3 URL
+    await pool.query(
       "UPDATE vendors SET logo_url = ? WHERE user_id = ?",
       [logoUrl, userId]
     );
 
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: "Vendor not found." });
-    }
+    // Delete old logo from S3 (non-blocking)
+    if (vendor[0].logo_url) deleteFromS3(vendor[0].logo_url);
 
     return res.status(200).json({
       success: true,

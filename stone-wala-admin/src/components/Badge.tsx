@@ -5,6 +5,7 @@ export type BadgeStatus =
   | 'approved'
   | 'rejected'
   | 'completed'
+  | 'paid'
   | 'failed';
 
 const styles: Record<BadgeStatus, string> = {
@@ -12,6 +13,7 @@ const styles: Record<BadgeStatus, string> = {
   approved:  'bg-green-100 text-green-700',
   completed: 'bg-green-100 text-green-700',
   blocked:   'bg-red-100 text-red-700',
+  paid: 'bg-green-100 text-green-700',
   rejected:  'bg-red-100 text-red-700',
   failed:    'bg-red-100 text-red-700',
   pending:   'bg-amber-100 text-amber-700',

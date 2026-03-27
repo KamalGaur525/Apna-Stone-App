@@ -70,7 +70,7 @@ export interface Guest {
   whatsapp: string | null;
   email: string | null;
   location: string | null;
-  payment_status: 'pending' | 'completed' | 'failed';
+  payment_status: 'pending' | 'completed' | 'paid' | 'failed';
   plan_type: 'monthly' | 'yearly' | null;
   expiry_date: string | null;
   // Joined from users table

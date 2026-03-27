@@ -253,26 +253,34 @@ export const verifyAdminOtp = async (
 
 // ================= DASHBOARD =================
 
-export const getDashboardStats = async (
-  req: AuthRequest,
-  res: Response
-): Promise<any> => {
+// admin.controller.ts -> Update getDashboardStats
+
+export const getDashboardStats = async (req: AuthRequest, res: Response): Promise<any> => {
   try {
-    const [stats]: any = await pool.query(`
+    const [rows]: any = await pool.query(`
       SELECT 
-        (SELECT COUNT(*) FROM guests WHERE payment_status = 'pending') as pending_payments,
-        (SELECT COUNT(*) FROM products WHERE status = 'approved' AND is_active = true) as total_live_products,
-        (SELECT COUNT(*) FROM products WHERE status = 'pending') as pending_products,
-        (SELECT COUNT(*) FROM users WHERE role = 'vendor' AND is_active = true) as total_vendors,
-        (SELECT COUNT(*) FROM users WHERE role = 'guest') as total_guests
+        (SELECT COUNT(*) FROM products WHERE status = 'approved' AND is_active = 1) AS live_products,
+        (SELECT COUNT(*) FROM products WHERE status = 'pending') AS pending_products,
+        (SELECT COUNT(*) FROM users WHERE role = 'vendor' AND is_active = 1) AS vendors_count,
+        (SELECT COUNT(*) FROM users WHERE role = 'guest') AS guests_count
     `);
-    return res.status(200).json({ success: true, data: stats[0] });
+
+    const stats = rows[0];
+
+    // Response send karte waqt keys ko frontend ke component se match karana zaroori hai
+    return res.status(200).json({
+      success: true,
+      data: {
+        totalProducts: stats.live_products || 0, // Yeh Dashboard ke "Total Products" card ke liye
+        pendingProducts: stats.pending_products || 0, // Yeh "Pending Review" card ke liye
+        totalVendors: stats.vendors_count || 0,
+        totalGuests: stats.guests_count || 0
+      }
+    });
   } catch (error) {
-    console.error("Admin Stats Error:", error);
-    return res.status(500).json({ error: "Internal server error." });
+    res.status(500).json({ success: false, error: "Stats fetch failed" });
   }
 };
-
 // ================= PRODUCT MANAGEMENT =================
 
 export const getPendingProducts = async (

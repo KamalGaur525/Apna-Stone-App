@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { useAuthStore } from './store/authStore';
+import { ShieldCheck } from 'lucide-react';
 
 // Layout & Pages
 import Layout    from './Layout';
@@ -12,18 +13,21 @@ import Vendors   from './pages/Vendors';
 import Guests    from './pages/Guests';
 
 // ─── Hydration Guard ──────────────────────────────────────────────────────────
-// Waits for zustand/persist to read localStorage before rendering any route.
-// Without this: token = null on first render → flash redirect to /login even
-// when user is already logged in.
 
 function HydrationGuard({ children }: { children: ReactNode }) {
   const hasHydrated = useAuthStore((s) => s._hasHydrated);
 
   if (!hasHydrated) {
-    // Blank screen for a single frame — no flicker, no wrong redirect
     return (
       <div className="min-h-screen bg-stone-100 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
+        <div className="flex flex-col items-center gap-4">
+          {/* Brand mark */}
+          <div className="w-12 h-12 bg-amber-500 rounded-2xl flex items-center justify-center shadow-lg shadow-amber-900/20">
+            <ShieldCheck size={22} className="text-stone-100" strokeWidth={2.5} />
+          </div>
+          {/* Spinner track */}
+          <div className="w-5 h-5 border-2 border-stone-300 border-t-amber-500 rounded-full animate-spin" />
+        </div>
       </div>
     );
   }
@@ -32,7 +36,6 @@ function HydrationGuard({ children }: { children: ReactNode }) {
 }
 
 // ─── Protected Route ──────────────────────────────────────────────────────────
-// Only runs after hydration — token value is now reliable
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
   const token = useAuthStore((s) => s.token);
@@ -51,8 +54,11 @@ export default function App() {
           style: {
             background: '#1c1917', // stone-900
             color: '#fff',
-            borderRadius: '16px',
-            fontSize: '14px',
+            borderRadius: '12px',
+            fontSize: '13px',
+            fontWeight: '500',
+            padding: '10px 14px',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.18)',
           },
           success: {
             iconTheme: {
@@ -63,7 +69,6 @@ export default function App() {
         }}
       />
 
-      {/* HydrationGuard wraps everything — no route renders before store is ready */}
       <HydrationGuard>
         <Routes>
           {/* Public */}

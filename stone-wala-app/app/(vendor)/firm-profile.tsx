@@ -279,10 +279,10 @@ export default function FirmProfile() {
       .toUpperCase() || "SV";
 
   // ✅ Local picked asset takes priority over server URL
-  const displayLogoUri = logoAsset
+ const displayLogoUri = logoAsset
     ? logoAsset.uri
     : logoUrl
-    ? `${API_CONFIG.BASE_URL.replace("/api", "")}${logoUrl}`
+    ? logoUrl
     : null;
 
   return (

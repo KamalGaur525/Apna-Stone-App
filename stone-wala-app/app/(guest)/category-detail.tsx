@@ -1,4 +1,3 @@
-import { API_CONFIG } from "@/constants/api";
 import { getCategoryProducts } from "@/services/guestService";
 import { useGuestStore } from "@/store/guestStore";
 import { Ionicons } from "@expo/vector-icons";
@@ -13,6 +12,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { WebView } from "react-native-webview"; // <-- Added
 
 interface Product {
   id: number;
@@ -47,6 +47,46 @@ const PALETTE = [
   { bg: "#fefce8", text: "#713f12" },
 ];
 
+// <-- Helper: wraps raw HTML from richtext editor into a full HTML doc
+const getDescriptionHtml = (html: string) => `
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+      <style>
+        * { box-sizing: border-box; }
+        body {
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+          color: #a8a29e;
+          font-size: 14px;
+          line-height: 1.6;
+          margin: 0;
+          padding: 0;
+          background-color: transparent;
+          word-wrap: break-word;
+        }
+        strong, b { color: #1c1917; }
+        img { max-width: 100%; height: auto; border-radius: 8px; }
+        ul, ol { padding-left: 20px; margin-top: 4px; margin-bottom: 4px; }
+        p { margin-top: 0; margin-bottom: 8px; }
+        p:last-child { margin-bottom: 0; }
+      </style>
+    </head>
+    <body>
+      <div id="content">${html}</div>
+      <script>
+        function reportHeight() {
+          var h = document.getElementById('content').offsetHeight;
+          window.ReactNativeWebView.postMessage(h.toString());
+        }
+        window.onload = reportHeight;
+        window.addEventListener('resize', reportHeight);
+        setTimeout(reportHeight, 300);
+      </script>
+    </body>
+  </html>
+`;
+
 export default function CategoryDetail() {
   const params = useLocalSearchParams<{ id: string; name: string }>();
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
@@ -61,6 +101,9 @@ export default function CategoryDetail() {
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [page, setPage] = useState(1);
+
+  // <-- Map of productId → WebView height
+  const [webViewHeights, setWebViewHeights] = useState<{ [key: number]: number }>({});
 
   const color = PALETTE[Number(id) % PALETTE.length];
 
@@ -167,55 +210,52 @@ export default function CategoryDetail() {
     >
       {/* ── HEADER ── */}
       <View className="bg-stone-950 px-5 pt-6 pb-4">
-  {/* Top row — Identity left, Back right */}
-  <View className="flex-row items-start justify-between">
-    {/* Category Identity */}
-    <View className="flex-row items-center gap-4 flex-1">
-      <View
-        className="w-16 h-16 rounded-2xl items-center justify-center"
-        style={{ backgroundColor: color.bg }}
-      >
-        <Text
-          className="text-2xl font-black tracking-tighter"
-          style={{ color: color.text }}
-        >
-          {name?.slice(0, 2).toUpperCase()}
-        </Text>
-      </View>
+        <View className="flex-row items-start justify-between">
+          <View className="flex-row items-center gap-4 flex-1">
+            <View
+              className="w-16 h-16 rounded-2xl items-center justify-center"
+              style={{ backgroundColor: color.bg }}
+            >
+              <Text
+                className="text-2xl font-black tracking-tighter"
+                style={{ color: color.text }}
+              >
+                {name?.slice(0, 2).toUpperCase()}
+              </Text>
+            </View>
 
-      <View className="flex-1 gap-1">
-        <Text
-          className="text-white text-2xl font-black tracking-tight"
-          numberOfLines={1}
-        >
-          {name}
-        </Text>
-        <View className="flex-row items-center gap-1.5">
-          <View className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-          <Text className="text-stone-500 text-xs font-medium">
-            {pagination?.total ?? 0} products available
-          </Text>
+            <View className="flex-1 gap-1">
+              <Text
+                className="text-white text-2xl font-black tracking-tight"
+                numberOfLines={1}
+              >
+                {name}
+              </Text>
+              <View className="flex-row items-center gap-1.5">
+                <View className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                <Text className="text-stone-500 text-xs font-medium">
+                  {pagination?.total ?? 0} products available
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          <Pressable
+            onPress={() => router.back()}
+            className="flex-row items-center bg-amber-500/15 border border-amber-500/30 active:bg-stone-700/15 rounded-full px-4 py-2 gap-1.5"
+          >
+            <Text className="text-amber-600 text-sm">←</Text>
+            <Text className="text-amber-600 text-sm font-semibold">Back</Text>
+          </Pressable>
         </View>
       </View>
-    </View>
 
-    {/* Back button — far right */}
-     <Pressable
-    onPress={() => router.back()}
-    className="flex-row items-center bg-amber-500/15 border border-amber-500/30 active:bg-stone-700/15 rounded-full px-4 py-2 gap-1.5"
-  >
-    <Text className="text-amber-600 text-sm">←</Text>
-    <Text className="text-amber-600 text-sm font-semibold">Back</Text>
-  </Pressable>
-  </View>
-</View>
       {/* ── THIN ACCENT DIVIDER ── */}
       <View className="h-px bg-stone-200" />
 
       {/* ── PRODUCT LIST ── */}
       <View className="px-4 pt-5 pb-12 gap-4">
         {products.length === 0 ? (
-          /* ── Empty State ── */
           <View className="bg-white rounded-3xl p-12 border border-stone-200/70 items-center gap-3 mt-4">
             <View className="w-16 h-16 rounded-2xl bg-stone-50 border border-stone-100 items-center justify-center mb-1">
               <Ionicons name="cube-outline" size={30} color="#c4b5a5" />
@@ -249,9 +289,7 @@ export default function CategoryDetail() {
                 {/* ── Product Image ── */}
                 {product.image_url ? (
                   <Image
-                    source={{
-                      uri: `${API_CONFIG.BASE_URL.replace("/api", "")}${product.image_url}`,
-                    }}
+                    source={{ uri: product.image_url }}
                     className="w-full h-52"
                     resizeMode="cover"
                   />
@@ -312,15 +350,32 @@ export default function CategoryDetail() {
                     </View>
                   )}
 
-                  {/* Description */}
-                  {product.description && (
-                    <Text
-                      className="text-stone-400 text-sm leading-relaxed"
-                      numberOfLines={2}
+                  {/* ── Description — WebView for rich HTML ── */}
+                  {product.description ? (
+                    <View
+                      style={{
+                        height: webViewHeights[product.id] ?? 60, // <-- default 60 jab tak height nahi aati
+                        width: "100%",
+                      }}
                     >
-                      {product.description}
-                    </Text>
-                  )}
+                      <WebView
+                        scrollEnabled={false}
+                        style={{ backgroundColor: "transparent", flex: 1 }}
+                        source={{ html: getDescriptionHtml(product.description) }}
+                        onMessage={(event) => {
+                          const h = Number(event.nativeEvent.data);
+                          if (h > 0) {
+                            setWebViewHeights((prev) => ({
+                              ...prev,
+                              [product.id]: h + 10, // <-- 10px buffer
+                            }));
+                          }
+                        }}
+                        javaScriptEnabled={true}
+                        showsVerticalScrollIndicator={false}
+                      />
+                    </View>
+                  ) : null}
 
                   {/* ── Divider ── */}
                   <View className="h-px bg-stone-100 my-0.5" />
@@ -339,7 +394,6 @@ export default function CategoryDetail() {
                       </Text>
                     </View>
 
-                    {/* CTA */}
                     <View className="flex-row items-center gap-1 bg-amber-500 px-3 py-1.5 rounded-full">
                       <Text className="text-white text-xs font-bold">
                         View Firm

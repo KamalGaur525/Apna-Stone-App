@@ -1,15 +1,14 @@
-import { API_CONFIG } from "@/constants/api";
 import { getMarketplaceProducts } from "@/services/guestService";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    FlatList,
-    Image,
-    Pressable,
-    Text,
-    View,
+  ActivityIndicator,
+  FlatList,
+  Image,
+  Pressable,
+  Text,
+  View,
 } from "react-native";
 
 interface Product {
@@ -88,9 +87,7 @@ export default function AllProducts() {
   };
 
   const renderProduct = ({ item }: { item: Product }) => {
-    const imageUrl = item.image_url
-      ? `${API_CONFIG.BASE_URL.replace("/api", "")}${item.image_url}`
-      : null;
+    const imageUrl = item.image_url || null;
 
     return (
       <Pressable

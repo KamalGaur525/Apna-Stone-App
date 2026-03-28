@@ -1,4 +1,3 @@
-import { API_CONFIG } from "@/constants/api";
 import { getGuestHome, searchFirms } from "@/services/guestService";
 import { useAuthStore } from "@/store/authStore";
 import { useGuestStore } from "@/store/guestStore";
@@ -571,7 +570,7 @@ export default function Home() {
           <View className="relative w-full h-40">
             {product.image_url ? (
               <Image
-                source={{ uri: `${API_CONFIG.BASE_URL.replace("/api", "")}${product.image_url}` }}
+                source={{ uri: product.image_url }}
                 className="w-full h-full bg-stone-100"
                 resizeMode="cover"
               />
@@ -724,7 +723,7 @@ export default function Home() {
   {firm.logo_url ? (
     <Image
       source={{
-        uri: `${API_CONFIG.BASE_URL.replace("/api", "")}${firm.logo_url}`,
+        uri:  firm.logo_url ,
       }}
       className="w-12 h-12 rounded-lg"
       resizeMode="cover"
@@ -839,7 +838,7 @@ export default function Home() {
                     {service.photo_url ? (
                       <Image
                         source={{
-                          uri: `${API_CONFIG.BASE_URL.replace("/api", "")}${service.photo_url}`,
+                          uri:  service.photo_url ,
                         }}
                         className="w-full h-full"
                         resizeMode="cover"

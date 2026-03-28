@@ -16,7 +16,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { WebView } from "react-native-webview"; // <-- Added WebView import
+import { WebView } from "react-native-webview";
 
 const HERO_HEIGHT = 500;
 
@@ -75,18 +75,13 @@ export default function ProductDetail() {
   }
 
   const baseUrl = API_CONFIG.BASE_URL.replace("/api", "");
-  const imageUrl = product?.image_url
-    ? `${baseUrl}${product.image_url}`
-    : null;
-  const vendorLogoUrl = product?.logo_url
-    ? `${baseUrl}${product.logo_url}`
-    : null;
+ const imageUrl = product?.image_url || null;
+const vendorLogoUrl = product?.logo_url || null;
+const videoUrl: string | null = product?.video_url || null;
   const vendorInitials =
     product?.firm_name?.slice(0, 2).toUpperCase() || "SW";
 
-  const videoUrl: string | null = product?.video_url
-    ? `${baseUrl}${product.video_url}`
-    : null;
+
 
   // <-- Added HTML wrapper for rich text with auto-height script
   const descriptionHtml = product?.description

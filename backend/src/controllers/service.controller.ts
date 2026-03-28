@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import pool from "../database/pool";
 import { AuthRequest } from "../middleware/auth.middleware";
+import { uploadToS3, deleteFromS3 } from "../utils/uploadToS3";
 
 // --- SERVICE TYPES ---
 
@@ -31,42 +32,41 @@ export const getAllTypes = async (req: Request, res: Response): Promise<any> => 
 export const deleteServiceType = async (req: AuthRequest, res: Response): Promise<any> => {
   try {
     const { id } = req.params;
-
-    // UPDATE ko DELETE mein badal diya
     await pool.query("DELETE FROM service_types WHERE id = ?", [id]);
-
-    return res.status(200).json({ 
-      success: true, 
-      message: "Service category permanently deleted from database." 
-    });
+    return res.status(200).json({ success: true, message: "Service category permanently deleted from database." });
   } catch (error: any) {
     console.error("DeleteType Error:", error);
-
-    // Agar is type ke andar providers mapped hain, toh database delete nahi karne dega
     if (error.code === 'ER_ROW_IS_REFERENCED_2') {
-      return res.status(400).json({ 
-        error: "Cannot delete: This category has active providers. Delete the providers first." 
-      });
+      return res.status(400).json({ error: "Cannot delete: This category has active providers. Delete the providers first." });
     }
-
     return res.status(500).json({ error: "Internal server error" });
   }
 };
 
 // --- SERVICE PROVIDERS ---
 
-// ✅ Corrected Validation & Path
+/**
+ * @route   POST /api/services/providers
+ * @desc    Add service provider — uploads photo to S3
+ */
 export const addServiceProvider = async (req: AuthRequest, res: Response): Promise<any> => {
   try {
     const { service_type_id, name, phone, description } = req.body;
-    
-    // 1. Correct OR operator for validation
+
     if (!service_type_id || !name || !phone) {
-        return res.status(400).json({ error: "Required fields missing: service_type_id, name, or phone" });
+      return res.status(400).json({ error: "Required fields missing: service_type_id, name, or phone" });
     }
 
-    // 2. Correct path for services
-    const photo_url = req.file ? `/uploads/services/${req.file.filename}` : null; 
+    // Upload photo to S3 if provided
+    let photo_url: string | null = null;
+    if (req.file) {
+      photo_url = await uploadToS3(
+        req.file.buffer,
+        req.file.originalname,
+        req.file.mimetype,
+        "logos" // reusing logos folder for service provider photos
+      );
+    }
 
     await pool.query(
       "INSERT INTO service_providers (service_type_id, name, phone, photo_url, description) VALUES (?, ?, ?, ?, ?)",
@@ -94,7 +94,6 @@ export const getGroupedProviders = async (req: Request, res: Response): Promise<
 
     const [rows]: any = await pool.query(query);
 
-    // Dynamic Grouping Logic
     const groupedData = rows.reduce((acc: any, row: any) => {
       let type = acc.find((t: any) => t.type_id === row.type_id);
       if (!type) {
@@ -120,11 +119,34 @@ export const getGroupedProviders = async (req: Request, res: Response): Promise<
   }
 };
 
+/**
+ * @route   PUT /api/services/providers/:id
+ * @desc    Update service provider — uploads new photo to S3, deletes old one
+ */
 export const updateProvider = async (req: AuthRequest, res: Response): Promise<any> => {
   try {
     const { id } = req.params;
     const { name, phone, description, service_type_id } = req.body;
-    const new_photo_url = req.file ? `/uploads/services/${req.file.filename}` : null;
+
+    // Fetch existing photo URL for S3 cleanup
+    let new_photo_url: string | null = null;
+    if (req.file) {
+      // Get old photo URL before upload
+      const [existing]: any = await pool.query(
+        "SELECT photo_url FROM service_providers WHERE id = ?",
+        [id]
+      );
+
+      new_photo_url = await uploadToS3(
+        req.file.buffer,
+        req.file.originalname,
+        req.file.mimetype,
+        "logos"
+      );
+
+      // Delete old photo from S3 (non-blocking)
+      if (existing[0]?.photo_url) deleteFromS3(existing[0].photo_url);
+    }
 
     const [result]: any = await pool.query(
       `UPDATE service_providers SET 
@@ -149,10 +171,18 @@ export const updateProvider = async (req: AuthRequest, res: Response): Promise<a
 export const deleteProvider = async (req: AuthRequest, res: Response): Promise<any> => {
   try {
     const { id } = req.params;
-    
-    // Naya Code: Seedha database se record udayega (Hard Delete)
+
+    // Fetch photo URL before delete for S3 cleanup
+    const [existing]: any = await pool.query(
+      "SELECT photo_url FROM service_providers WHERE id = ?",
+      [id]
+    );
+
     await pool.query("DELETE FROM service_providers WHERE id = ?", [id]);
-    
+
+    // Delete photo from S3 (non-blocking)
+    if (existing[0]?.photo_url) deleteFromS3(existing[0].photo_url);
+
     return res.status(200).json({ success: true, message: "Provider permanently deleted." });
   } catch (error) {
     console.error("DeleteProvider Error:", error);

@@ -536,7 +536,7 @@ export default function EditProduct() {
                 <View>
                   <Image
                     source={{
-                      uri: `${API_CONFIG.BASE_URL.replace("/api", "")}${existingImageUrl}`,
+                     uri: existingImageUrl,
                     }}
                     className="w-full h-52 rounded-2xl"
                     resizeMode="cover"

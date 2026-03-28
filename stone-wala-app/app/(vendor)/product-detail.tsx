@@ -1,4 +1,3 @@
-import { API_CONFIG } from "@/constants/api";
 import { deleteProduct, getProductById } from "@/services/vendorService";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
@@ -253,7 +252,7 @@ export default function ProductDetail() {
         {product.image_url ? (
           <Image
             source={{
-              uri: `${API_CONFIG.BASE_URL.replace("/api", "")}${product.image_url}`,
+             uri: product.image_url, 
             }}
             className="w-full h-64 rounded-3xl"
             resizeMode="cover"

@@ -1,4 +1,3 @@
-import { API_CONFIG } from "@/constants/api";
 import { getMyProducts } from "@/services/vendorService";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
@@ -267,7 +266,7 @@ const onRefresh = async () => {
     {item.image_url ? (
       <Image
         source={{
-          uri: `${API_CONFIG.BASE_URL.replace("/api", "")}${item.image_url}`,
+          uri: item.image_url,
         }}
         className="w-[72px] h-[72px] rounded-2xl"
         resizeMode="cover"

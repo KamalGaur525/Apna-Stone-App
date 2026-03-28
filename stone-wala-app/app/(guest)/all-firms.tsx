@@ -1,4 +1,3 @@
-import { API_CONFIG } from "@/constants/api";
 import { getAllFirms } from "@/services/guestService";
 import { useGuestStore } from "@/store/guestStore";
 import { Ionicons } from "@expo/vector-icons";
@@ -268,7 +267,7 @@ export default function AllFirms() {
   {firm.logo_url ? (
     <Image
       source={{
-        uri: `${API_CONFIG.BASE_URL.replace("/api", "")}${firm.logo_url}`,
+        uri: firm.logo_url,
       }}
       className="w-12 h-12 rounded-lg  "
       resizeMode="cover"

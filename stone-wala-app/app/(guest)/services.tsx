@@ -4,6 +4,7 @@ import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Image,
   Linking,
   Pressable,
   RefreshControl,
@@ -123,33 +124,32 @@ export default function Services() {
     >
       {/* ── HEADER ── */}
       <View className="bg-stone-950 px-5 pt-5 pb-3">
-       
-     <View className="flex-row items-start justify-between">
-  {/* Left — Title */}
-  <View className="flex-row items-center gap-3">
-    <View className="w-1.5 h-10 rounded-full bg-amber-400" />
-    <View className="gap-0.5">
-      <Text className="text-amber-500 text-[10px] font-extrabold tracking-[3px] uppercase">
-        On Demand
-      </Text>
-      <Text className="text-white text-2xl font-extrabold tracking-tight leading-tight">
-        Services
-      </Text>
-      <Text className="text-stone-500 text-xs font-medium">
-        {totalProviders} providers available
-      </Text>
-    </View>
-  </View>
+        <View className="flex-row items-start justify-between">
+          {/* Left — Title */}
+          <View className="flex-row items-center gap-3">
+            <View className="w-1.5 h-10 rounded-full bg-amber-400" />
+            <View className="gap-0.5">
+              <Text className="text-amber-500 text-[10px] font-extrabold tracking-[3px] uppercase">
+                On Demand
+              </Text>
+              <Text className="text-white text-2xl font-extrabold tracking-tight leading-tight">
+                Services
+              </Text>
+              <Text className="text-stone-500 text-xs font-medium">
+                {totalProviders} providers available
+              </Text>
+            </View>
+          </View>
 
-  {/* Right — Back button */}
-  <Pressable
-    onPress={() => router.back()}
-    className="flex-row items-center bg-amber-500/15 border border-amber-500/30 active:bg-stone-700/15 rounded-full px-4 py-2 gap-1.5"
-  >
-    <Text className="text-amber-600 text-sm">←</Text>
-    <Text className="text-amber-600 text-sm font-semibold">Back</Text>
-  </Pressable>
-</View>
+          {/* Right — Back button */}
+          <Pressable
+            onPress={() => router.back()}
+            className="flex-row items-center bg-amber-500/15 border border-amber-500/30 active:bg-stone-700/15 rounded-full px-4 py-2 gap-1.5"
+          >
+            <Text className="text-amber-600 text-sm">←</Text>
+            <Text className="text-amber-600 text-sm font-semibold">Back</Text>
+          </Pressable>
+        </View>
       </View>
 
       {/* ── TYPE FILTER ── */}
@@ -212,9 +212,6 @@ export default function Services() {
             const color = PALETTE[group.type_id % PALETTE.length];
             return (
               <View key={group.type_id}>
-                {/* Group Header */}
-                 
-
                 {/* Providers */}
                 <View className="gap-3">
                   {group.providers.map((provider) => (
@@ -224,18 +221,27 @@ export default function Services() {
                     >
                       {/* Top Row */}
                       <View className="flex-row items-center gap-3">
-                        {/* Logo */}
-                        <View
-                          className="w-12 h-12 rounded-2xl items-center justify-center"
-                          style={{ backgroundColor: color.bg }}
-                        >
-                          <Text
-                            className="text-base font-black"
-                            style={{ color: color.text }}
+
+                        {/* ── Photo or Initials ── */}
+                        {provider.photo_url ? (
+                          <Image
+                            source={{ uri: provider.photo_url }}
+                            className="w-12 h-12 rounded-2xl"
+                            resizeMode="cover"
+                          />
+                        ) : (
+                          <View
+                            className="w-12 h-12 rounded-2xl items-center justify-center"
+                            style={{ backgroundColor: color.bg }}
                           >
-                            {provider.name.slice(0, 2).toUpperCase()}
-                          </Text>
-                        </View>
+                            <Text
+                              className="text-base font-black"
+                              style={{ color: color.text }}
+                            >
+                              {provider.name.slice(0, 2).toUpperCase()}
+                            </Text>
+                          </View>
+                        )}
 
                         {/* Name + Tag */}
                         <View className="flex-1 gap-1">
@@ -245,7 +251,6 @@ export default function Services() {
                           >
                             {provider.name}
                           </Text>
-                          {/* Service Type Tag — amber style */}
                           <View className="self-start bg-amber-50 border border-amber-200 px-3 py-1 rounded-full">
                             <Text className="text-amber-600 text-xs font-bold tracking-wide">
                               {group.type_name}

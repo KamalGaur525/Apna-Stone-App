@@ -1,4 +1,3 @@
-import { API_CONFIG } from "@/constants/api";
 import { getFirmDetail } from "@/services/guestService";
 import { useGuestStore } from "@/store/guestStore";
 import { Feather, Ionicons } from "@expo/vector-icons";
@@ -181,7 +180,7 @@ export default function FirmDetail() {
           <View className="p-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 shadow-sm">
             {firm.logo_url ? (
               <Image
-                source={{ uri: `${API_CONFIG.BASE_URL.replace("/api", "")}${firm.logo_url}` }}
+                source={{ uri:  firm.logo_url }}
                 className="w-16 h-16 rounded-lg bg-stone-100"
                 resizeMode="cover"
               />
@@ -382,7 +381,7 @@ export default function FirmDetail() {
                     {product.image_url ? (
                       <Image
                         source={{
-                          uri: `${API_CONFIG.BASE_URL.replace("/api", "")}${product.image_url}`,
+                          uri:  product.image_url,
                         }}
                         className="w-full h-full"
                         resizeMode="cover"

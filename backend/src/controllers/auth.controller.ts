@@ -416,14 +416,15 @@ export const verifyVendorOtp = async (
       return res.status(403).json({ error: "Account deactivated." });
 
     // Subscription check
-    const [subs]: any = await pool.query(
-      `SELECT t.status, t.created_at, sp.plan_type
-       FROM transactions t
-       INNER JOIN subscription_plans sp ON sp.plan_type = t.type
-       WHERE t.user_id = ? AND t.status = 'verified'
-       ORDER BY t.created_at DESC LIMIT 1`,
-      [user.id]
-    );
+   const [subs]: any = await pool.query(
+  `SELECT t.status, t.created_at, sp.plan_name
+   FROM transactions t
+   INNER JOIN subscription_plans sp ON sp.id = t.plan_id
+   WHERE t.user_id = ? AND t.status = 'verified'
+     AND t.plan_expires_at > NOW()
+   ORDER BY t.created_at DESC LIMIT 1`,
+  [user.id]
+);
 
     const hasSubscription = subs.length > 0;
 

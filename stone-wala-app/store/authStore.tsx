@@ -12,6 +12,7 @@ import { create } from "zustand";
 interface AuthUser {
   id: string;
   role: "vendor" | "guest" | "admin";
+  name?: string;
 }
 
 interface AuthState {

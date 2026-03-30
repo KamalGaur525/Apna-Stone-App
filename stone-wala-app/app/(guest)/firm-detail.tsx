@@ -24,7 +24,7 @@ interface FirmData {
   phone: string;
   whatsapp: string | null;
   email: string | null;
-  
+    about: string | null;
   instagram: string | null;
   facebook: string | null;
   website: string | null;
@@ -73,7 +73,7 @@ export default function FirmDetail() {
         phone: selectedFirm.phone || "",
         whatsapp: selectedFirm.phone || null,
         email: selectedFirm.email || null,
-       
+         about: selectedFirm.about || null,
         instagram: null,
         facebook: null,
         website: null,
@@ -340,7 +340,23 @@ export default function FirmDetail() {
             </View>
           </View>
         )}
-
+{/* ── ABOUT ── */}
+{firm.about && (
+  <View className="bg-white rounded-3xl border border-stone-200/60 shadow-sm overflow-hidden">
+    <View className="px-5 pt-4 pb-3 flex-row items-center gap-2.5">
+      <View className="w-1.5 h-5 rounded-full bg-amber-400" />
+      <Text className="text-stone-500 text-[10px] font-extrabold tracking-widest uppercase">
+        About
+      </Text>
+    </View>
+    <View className="h-px bg-stone-100 mx-5" />
+    <View className="px-5 py-4">
+      <Text className="text-stone-600 text-sm leading-6">
+        {stripHtmlTags(firm.about)}
+      </Text>
+    </View>
+  </View>
+)}
         
 
         {/* ── PRODUCTS ── */}

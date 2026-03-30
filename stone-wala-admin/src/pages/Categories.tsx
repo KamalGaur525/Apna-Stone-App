@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import toast from 'react-hot-toast';
 import {
   Search, Plus, Edit2, Trash2, FolderTree,
-  Loader2, X, RefreshCcw, LayoutGrid, AlertCircle
+  Loader2, X, LayoutGrid, AlertCircle, ChevronLeft, ChevronRight, Layers
 } from 'lucide-react';
 import Modal from '../components/Modal';
 import { useCategories } from '../hooks/useCategories';
@@ -49,36 +49,41 @@ function Pagination({
   });
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-5 py-4 border-t border-stone-100 bg-stone-50/40">
-      <p className="text-xs text-stone-400 tabular-nums order-2 sm:order-1">
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-stone-100/80">
+      <p className="text-xs text-stone-400 tabular-nums order-2 sm:order-1 tracking-wide">
         Showing{' '}
-        <span className="font-semibold text-stone-700">{start}–{end}</span>
+        <span className="font-semibold text-stone-600">{start}–{end}</span>
         {' '}of{' '}
-        <span className="font-semibold text-stone-700">{totalItems}</span>{' '}
-        categories
+        <span className="font-semibold text-stone-600">{totalItems}</span>
+        {' '}categories
       </p>
 
       <div className="flex items-center gap-1.5 order-1 sm:order-2">
         <button
           onClick={onPrev}
           disabled={currentPage === 1}
-          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-stone-200 text-stone-600 hover:bg-stone-100 hover:text-stone-900 disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 transition-all shadow-sm"
+          aria-label="Previous page"
+          className="flex items-center justify-center w-8 h-8 rounded-lg border border-stone-200 bg-white text-stone-500 hover:bg-stone-50 hover:text-stone-800 hover:border-stone-300 disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-all duration-150 shadow-[0_1px_2px_rgba(0,0,0,0.05)]"
         >
-          ← Prev
+          <ChevronLeft size={14} />
         </button>
 
         <div className="hidden sm:flex items-center gap-1">
           {pages.map((p, i) =>
             p === '...' ? (
-              <span key={`el-${i}`} className="px-1 text-xs text-stone-400 select-none">…</span>
+              <span key={`el-${i}`} className="w-8 h-8 flex items-center justify-center text-xs text-stone-400 select-none">
+                …
+              </span>
             ) : (
               <button
                 key={p}
                 onClick={() => onPage(p as number)}
-                className={`w-8 h-8 rounded-lg text-xs font-semibold transition-all active:scale-95 ${
+                aria-label={`Go to page ${p}`}
+                aria-current={p === currentPage ? 'page' : undefined}
+                className={`w-8 h-8 rounded-lg text-xs font-semibold transition-all duration-150 active:scale-95 ${
                   p === currentPage
                     ? 'bg-stone-900 text-white shadow-sm'
-                    : 'bg-white border border-stone-200 text-stone-600 hover:bg-stone-100 hover:text-stone-900'
+                    : 'bg-white border border-stone-200 text-stone-500 hover:bg-stone-50 hover:text-stone-800 hover:border-stone-300 shadow-[0_1px_2px_rgba(0,0,0,0.05)]'
                 }`}
               >
                 {p}
@@ -87,12 +92,18 @@ function Pagination({
           )}
         </div>
 
+        {/* Mobile page indicator */}
+        <span className="sm:hidden text-xs font-medium text-stone-500 px-2">
+          {currentPage} / {totalPages}
+        </span>
+
         <button
           onClick={onNext}
           disabled={currentPage === totalPages}
-          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-stone-200 text-stone-600 hover:bg-stone-100 hover:text-stone-900 disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 transition-all shadow-sm"
+          aria-label="Next page"
+          className="flex items-center justify-center w-8 h-8 rounded-lg border border-stone-200 bg-white text-stone-500 hover:bg-stone-50 hover:text-stone-800 hover:border-stone-300 disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-all duration-150 shadow-[0_1px_2px_rgba(0,0,0,0.05)]"
         >
-          Next →
+          <ChevronRight size={14} />
         </button>
       </div>
     </div>
@@ -125,7 +136,6 @@ export default function Categories() {
     });
   }, [categories, searchTerm]);
 
-  // ── Pagination Logic ──
   const totalPages = Math.max(1, Math.ceil(filteredCategories.length / ITEMS_PER_PAGE));
   const safePage = Math.min(currentPage, totalPages);
   const paginatedCategories = filteredCategories.slice(
@@ -171,7 +181,7 @@ export default function Categories() {
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!formData.name.trim() || formData.name.trim().length < 2) return toast.error('Category name must be at least 2 characters');
-    
+
     setIsSubmitting(true);
     try {
       let res;
@@ -216,97 +226,210 @@ export default function Categories() {
     }
   };
 
+  // ─── Loading State ──────────────────────────────────────────────────────────
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 gap-4">
-        <Loader2 className="animate-spin text-amber-500" size={32} />
-        <p className="text-sm font-semibold text-stone-600">Loading Categories...</p>
+      <div className="flex flex-col items-center justify-center min-h-64 gap-3">
+        <div className="relative">
+          <div className="w-10 h-10 rounded-full border-2 border-stone-100" />
+          <div className="absolute inset-0 w-10 h-10 rounded-full border-2 border-transparent border-t-amber-500 animate-spin" />
+        </div>
+        <p className="text-sm font-medium text-stone-500 tracking-wide">Loading categories…</p>
       </div>
     );
   }
 
+  // ─── Error State ────────────────────────────────────────────────────────────
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-center">
-        <AlertCircle size={32} className="text-red-500 mb-3" />
-        <p className="text-sm font-bold text-red-700">Failed to load content</p>
-        <p className="text-xs text-red-500 mb-5">{error.message}</p>
-        <button onClick={() => refetch()} className="px-4 py-2 bg-stone-900 text-white rounded-lg text-sm">Retry</button>
+      <div className="flex flex-col items-center justify-center py-20 text-center gap-4">
+        <div className="w-12 h-12 rounded-2xl bg-red-50 border border-red-100 flex items-center justify-center">
+          <AlertCircle size={22} className="text-red-500" />
+        </div>
+        <div className="space-y-1">
+          <p className="text-sm font-semibold text-stone-800">Something went wrong</p>
+          <p className="text-xs text-stone-400 max-w-xs">{error.message}</p>
+        </div>
+        <button
+          onClick={() => refetch()}
+          className="inline-flex items-center gap-2 px-4 py-2 bg-stone-900 text-white rounded-lg text-sm font-medium hover:bg-stone-700 active:scale-95 transition-all duration-150"
+        >
+          Try again
+        </button>
       </div>
     );
   }
 
+  // ─── Main Render ────────────────────────────────────────────────────────────
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
-      
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-stone-900">Content Management</h1>
-          <p className="text-sm text-stone-500">Manage categories and sub-categories.</p>
+    <section className="space-y-6 animate-in fade-in duration-500">
+
+      {/* ── Header ── */}
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+        <div className="space-y-0.5">
+          <h1 className="text-xl font-bold text-stone-900 tracking-tight">Content Management</h1>
+          <p className="text-sm text-stone-400">Organize your categories and sub-categories.</p>
         </div>
-        <button onClick={openAddModal} className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-400 text-white rounded-xl font-bold hover:bg-amber-600 transition-all">
-          <Plus size={18} /> Add Category
+
+        <button
+          onClick={openAddModal}
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-amber-400 text-white rounded-xl text-sm font-semibold hover:bg-amber-500 active:scale-95 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 transition-all duration-150 shadow-sm shadow-amber-200 self-start sm:self-auto"
+        >
+          <Plus size={15} strokeWidth={2.5} />
+          Add Category
         </button>
       </div>
 
-      {/* Search */}
-      <div className="bg-white p-2 rounded-2xl border border-stone-200 shadow-sm flex items-center gap-2">
-        <div className="relative flex-1">
-          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400" />
-          <input
-            type="text"
-            placeholder="Search categories..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-transparent text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all"
-            value={searchTerm}
-            onChange={(e) => handleSearchChange(e.target.value)}
-          />
-          {searchTerm && (
-            <button onClick={() => handleSearchChange('')} className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600">
-              <X size={14} />
-            </button>
-          )}
-        </div>
+      {/* ── Stats Strip ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {[
+          {
+            label: 'Total',
+            value: categories.length,
+            icon: <LayoutGrid size={14} />,
+            accent: 'text-stone-700',
+            bg: 'bg-stone-50',
+            border: 'border-stone-200',
+          },
+          {
+            label: 'Main',
+            value: mainCategories.length,
+            icon: <FolderTree size={14} />,
+            accent: 'text-amber-700',
+            bg: 'bg-amber-50',
+            border: 'border-amber-100',
+          },
+          {
+            label: 'Sub',
+            value: categories.length - mainCategories.length,
+            icon: <Layers size={14} />,
+            accent: 'text-blue-700',
+            bg: 'bg-blue-50',
+            border: 'border-blue-100',
+          },
+        ].map(({ label, value, icon, accent, bg, border }) => (
+          <div
+            key={label}
+            className={`${bg} ${border} border  rounded-xl px-4 py-3 flex items-center justify-between gap-3 last:col-span-2 sm:last:col-span-1`}
+          >
+            <div>
+              <p className="text-xs text-stone-600 font-medium tracking-wide">{label}</p>
+              <p className={`text-lg font-bold ${accent} tabular-nums leading-tight`}>{value}</p>
+            </div>
+            <div className={`${accent} opacity-60`}>{icon}</div>
+          </div>
+        ))}
       </div>
 
-      {/* Table Card */}
-      <div className="bg-white border border-stone-200 rounded-2xl overflow-hidden shadow-sm">
+      {/* ── Search ── */}
+      <div className="relative">
+        <Search
+          size={15}
+          className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none"
+        />
+        <input
+          type="search"
+          placeholder="Search by name or parent…"
+          aria-label="Search categories"
+          value={searchTerm}
+          onChange={(e) => handleSearchChange(e.target.value)}
+          className="w-full pl-10 pr-10 py-2.5 bg-white border border-stone-200 rounded-xl text-sm text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400 transition-all duration-150 shadow-[0_1px_3px_rgba(0,0,0,0.04)]"
+        />
+        {searchTerm && (
+          <button
+            onClick={() => handleSearchChange('')}
+            aria-label="Clear search"
+            className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded-md text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors duration-150"
+          >
+            <X size={13} />
+          </button>
+        )}
+      </div>
+
+      {/* ── Table Card ── */}
+      <div className="bg-white border border-stone-200 rounded-2xl overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.06)]">
+
+        {/* Table */}
         <div className="overflow-x-auto">
-          <table className="w-full text-left whitespace-nowrap border-collapse">
+          <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-stone-50 border-b border-stone-200">
-                <th className="px-6 py-4 text-[11px] font-bold text-stone-400 uppercase tracking-widest">Category Name</th>
-                <th className="px-6 py-4 text-[11px] font-bold text-stone-400 uppercase tracking-widest">Hierarchy</th>
-                <th className="px-6 py-4 text-[11px] font-bold text-stone-400 uppercase tracking-widest text-right">Actions</th>
+              <tr className="border-b border-stone-100">
+                <th className="px-6 py-3.5 text-[10px] font-bold text-stone-400 uppercase tracking-[0.08em] w-1/2">
+                  Name
+                </th>
+                <th className="px-6 py-3.5 text-[10px] font-bold text-stone-400 uppercase tracking-[0.08em]">
+                  Hierarchy
+                </th>
+                <th className="px-6 py-3.5 text-[10px] font-bold text-stone-400 uppercase tracking-[0.08em] text-right">
+                  Actions
+                </th>
               </tr>
             </thead>
+
             <tbody className="divide-y divide-stone-100">
               {paginatedCategories.length === 0 ? (
                 <tr>
-                  <td colSpan={3} className="py-16 text-center">
-                    <LayoutGrid size={32} className="mx-auto text-stone-300 mb-3" />
-                    <p className="text-sm font-semibold text-stone-600">No categories found</p>
+                  <td colSpan={3} className="py-20 text-center">
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="w-11 h-11 rounded-2xl bg-stone-50 border border-stone-100 flex items-center justify-center">
+                        <LayoutGrid size={18} className="text-stone-300" />
+                      </div>
+                      <div className="space-y-0.5">
+                        <p className="text-sm font-semibold text-stone-700">
+                          {searchTerm ? 'No results found' : 'No categories yet'}
+                        </p>
+                        <p className="text-xs text-stone-400">
+                          {searchTerm ? `Nothing matched "${searchTerm}"` : 'Add your first category to get started.'}
+                        </p>
+                      </div>
+                      {searchTerm && (
+                        <button
+                          onClick={() => handleSearchChange('')}
+                          className="text-xs font-medium text-amber-600 hover:text-amber-700 underline-offset-2 hover:underline transition-colors"
+                        >
+                          Clear search
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ) : (
                 paginatedCategories.map((cat) => (
-                  <tr key={cat.id} className="hover:bg-stone-50 transition-colors">
-                    <td className="px-6 py-4 font-bold text-stone-900">{cat.name}</td>
+                  <tr key={cat.id} className="group hover:bg-stone-50/70 transition-colors duration-100">
+                    <td className="px-6 py-4">
+                      <span className="text-sm font-semibold text-stone-800 leading-none">{cat.name}</span>
+                    </td>
+
                     <td className="px-6 py-4">
                       {cat.parent_id === null ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-stone-100 text-stone-600 text-xs font-bold">
-                          <FolderTree size={12} /> Main Category
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-stone-100 text-stone-600 text-xs font-semibold">
+                          <FolderTree size={11} strokeWidth={2.5} />
+                          Main
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 text-xs font-bold">
-                          Sub of: {getParentName(cat.parent_id)}
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 text-xs font-semibold border border-blue-100 ">
+                          <Layers size={11} strokeWidth={2.5} />
+                          {getParentName(cat.parent_id)}
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <button onClick={() => openEditModal(cat)} className="p-2 text-stone-400 hover:text-amber-600 transition-colors bg-stone-50 hover:bg-amber-50 rounded-lg"><Edit2 size={15} /></button>
-                        <button onClick={() => openDeleteModal(cat)} className="p-2 text-stone-400 hover:text-red-600 transition-colors bg-stone-50 hover:bg-red-50 rounded-lg"><Trash2 size={15} /></button>
+
+                    <td className="px-6 py-4">
+                      <div className="flex items-center justify-end gap-1.5  transition-opacity duration-150">
+                        <button
+                          onClick={() => openEditModal(cat)}
+                          aria-label={`Edit ${cat.name}`}
+                          className="flex items-center justify-center w-8 h-8 rounded-lg text-stone-400 hover:text-amber-600 hover:bg-amber-50 border border-transparent hover:border-amber-200 active:scale-95 transition-all duration-150"
+                        >
+                          <Edit2 size={14} />
+                        </button>
+                        <button
+                          onClick={() => openDeleteModal(cat)}
+                          aria-label={`Delete ${cat.name}`}
+                          className="flex items-center justify-center w-8 h-8 rounded-lg text-stone-400 hover:text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200 active:scale-95 transition-all duration-150"
+                        >
+                          <Trash2 size={14} />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -316,7 +439,7 @@ export default function Categories() {
           </table>
         </div>
 
-        {/* Pagination logic applied here */}
+        {/* Pagination */}
         <Pagination
           currentPage={safePage}
           totalPages={totalPages}
@@ -328,57 +451,87 @@ export default function Categories() {
         />
       </div>
 
-      {/* Modals */}
+      {/* ── Add / Edit Modal ── */}
       {(modalMode === 'add' || modalMode === 'edit') && (
         <Modal
           isOpen
           title={modalMode === 'add' ? 'Add New Category' : 'Edit Category'}
           onCancel={closeModal}
           onConfirm={handleSubmit}
-          confirmText={modalMode === 'add' ? 'Create' : 'Save'}
+          confirmText={modalMode === 'add' ? 'Create' : 'Save changes'}
           isConfirmLoading={isSubmitting}
         >
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
+
+            {/* Level toggle — add only */}
             {modalMode === 'add' && (
-              <div>
-                <label className="block text-xs font-bold text-stone-500 uppercase mb-2">Level</label>
-                <div className="flex bg-stone-100 p-1 rounded-xl">
-                  <button type="button" onClick={() => setFormData({ ...formData, isSubCategory: false, parent_id: '' })} className={`flex-1 py-2 text-sm font-bold rounded-lg ${!formData.isSubCategory ? 'bg-white shadow-sm' : 'text-stone-500'}`}>Main</button>
-                  <button type="button" onClick={() => setFormData({ ...formData, isSubCategory: true })} className={`flex-1 py-2 text-sm font-bold rounded-lg ${formData.isSubCategory ? 'bg-white shadow-sm' : 'text-stone-500'}`}>Sub Category</button>
+              <div className="space-y-2">
+                <label className="block text-[10px] font-bold text-stone-400 uppercase tracking-[0.08em]">
+                  Type
+                </label>
+                <div className="flex gap-2 p-1 bg-stone-100 rounded-xl">
+                  {(['Main', 'Sub Category'] as const).map((label) => {
+                    const isSub = label === 'Sub Category';
+                    const active = formData.isSubCategory === isSub;
+                    return (
+                      <button
+                        key={label}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, isSubCategory: isSub, parent_id: isSub ? formData.parent_id : '' })}
+                        className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all duration-150 active:scale-95 ${
+                          active
+                            ? 'bg-white text-stone-900 shadow-sm'
+                            : 'text-stone-500 hover:text-stone-700'
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
 
+            {/* Parent selector */}
             {formData.isSubCategory && modalMode === 'add' && (
-              <div>
-                <label className="block text-xs font-bold text-stone-500 uppercase mb-2">Parent Category</label>
+              <div className="space-y-2">
+                <label className="block text-[10px] font-bold text-stone-400 uppercase tracking-[0.08em]">
+                  Parent Category
+                </label>
                 <select
                   value={formData.parent_id}
                   onChange={(e) => setFormData({ ...formData, parent_id: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-amber-500/20"
+                  className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400 transition-all duration-150 cursor-pointer"
                 >
-                  <option value="" disabled>Select Parent</option>
-                  {mainCategories.map(main => <option key={main.id} value={main.id}>{main.name}</option>)}
+                  <option value="" disabled>Select a parent…</option>
+                  {mainCategories.map(main => (
+                    <option key={main.id} value={main.id}>{main.name}</option>
+                  ))}
                 </select>
               </div>
             )}
 
-            <div>
-              <label className="block text-xs font-bold text-stone-500 uppercase mb-2">Name</label>
+            {/* Name field */}
+            <div className="space-y-2">
+              <label className="block text-[10px] font-bold text-stone-400 uppercase tracking-[0.08em]">
+                Name
+              </label>
               <input
                 autoFocus
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-amber-500/20 outline-none"
-                placeholder="Category Name"
+                placeholder="e.g. Electronics"
+                className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-sm text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400 focus:bg-white transition-all duration-150"
               />
             </div>
-            <button type="submit" className="hidden" />
+
+            <button type="submit" className="hidden" aria-hidden="true" />
           </form>
         </Modal>
       )}
 
+      {/* ── Delete Modal ── */}
       {modalMode === 'delete' && selectedCat && (
         <Modal
           isOpen
@@ -389,9 +542,20 @@ export default function Categories() {
           isDestructive
           isConfirmLoading={isSubmitting}
         >
-          <p>Are you sure you want to delete <b>{selectedCat.name}</b>?</p>
+          <div className="flex items-start gap-3">
+            <div className="w-9 h-9 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center flex-shrink-0">
+              <Trash2 size={15} className="text-red-500" />
+            </div>
+            <div className="pt-0.5 space-y-1">
+              <p className="text-sm text-stone-700">
+                Are you sure you want to delete{' '}
+                <span className="font-semibold text-stone-900">{selectedCat.name}</span>?
+              </p>
+              <p className="text-xs text-stone-400">This action cannot be undone.</p>
+            </div>
+          </div>
         </Modal>
       )}
-    </div>
+    </section>
   );
 }

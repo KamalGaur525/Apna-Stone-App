@@ -41,4 +41,8 @@ export const API = {
   // ── Payments (Fixed: Sync with your backend params) ──
   PAYMENTS_PENDING:      `${BASE_URL}/admin/payments/pending`,
   GUEST_PAYMENT_APPROVE: (id: number) => `${BASE_URL}/admin/guests/${id}/approve`,
+  // api.ts mein yeh dono change karo
+PRODUCT_DELETE: (id: number) => `${BASE_URL}/admin/products/${id}`,
+PRODUCT_APPROVE: (id: number) => `${BASE_URL}/admin/products/${id}/status`,  // <-- /approve nahi, /status
+PRODUCT_REJECT:  (id: number) => `${BASE_URL}/admin/products/${id}/status`,  // <-- same
 } as const;

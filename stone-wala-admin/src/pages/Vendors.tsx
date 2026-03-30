@@ -51,7 +51,7 @@ function VendorAvatar({ name, logoUrl }: { name: string; logoUrl?: string | null
       <img
         src={logoUrl}
         alt={name}
-        className="w-9 h-9 rounded-xl object-cover border border-stone-200 shrink-0"
+        className="w-12 h-12 rounded-lg object-cover border border-stone-200 shrink-0"
       />
     );
   }
@@ -347,7 +347,7 @@ export default function Vendors() {
                 paginatedVendors.map((vendor) => (
                   <tr
                     key={vendor.id}
-                    className="hover:bg-stone-50/60 transition-colors duration-150"
+                    className="hover:bg-stone-50/70 transition-colors "
                   >
                     {/* Vendor & Firm */}
                     <td className="px-5 py-3.5">

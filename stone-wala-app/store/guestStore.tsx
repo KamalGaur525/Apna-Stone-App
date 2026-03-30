@@ -9,6 +9,7 @@ interface Firm {
   image: string;
   phone?: string;
   email?: string;
+   about?: string | null;
   location?: string;
   website?: string;
   instagram?: string;

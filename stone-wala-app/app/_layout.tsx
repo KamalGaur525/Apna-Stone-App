@@ -16,22 +16,48 @@ function AppShell() {
     hydrate();
   }, [hydrate]);
 
-  useEffect(() => {
-    if (!isHydrated) return;
+ useEffect(() => {
+  if (!isHydrated) return;
 
-    if (!isLoggedIn) {
-      router.replace("/(auth)");
-      return;
-    }
+  if (!isLoggedIn) {
+    router.replace("/(auth)");
+    return;
+  }
 
-    if (user?.role === "vendor") {
-      router.replace("/(vendor)/dashboard");
-    } else if (user?.role === "guest") {
-      router.replace("/(guest)/home");
-    } else {
-      router.replace("/(auth)");
+  // Admin — direct redirect, no subscription check
+  if (user?.role === "admin") {
+    router.replace("/(auth)");
+    return;
+  }
+
+  // Vendor/Guest — check active subscription first
+  const checkPlan = async () => {
+    try {
+      const { getMyPlan } = await import("@/services/subscriptionService");
+      const res = await getMyPlan();
+
+      if (!res.hasActivePlan) {
+        router.replace("/(auth)/subscription");
+        return;
+      }
+
+      if (user?.role === "vendor") {
+        router.replace("/(vendor)/dashboard");
+      } else if (user?.role === "guest") {
+        router.replace("/(guest)/home");
+      }
+    } catch {
+      // API fail — still redirect to dashboard, don't block user
+      if (user?.role === "vendor") {
+        router.replace("/(vendor)/dashboard");
+      } else if (user?.role === "guest") {
+        router.replace("/(guest)/home");
+      }
     }
-  }, [isHydrated, isLoggedIn, user]);
+  };
+
+  checkPlan();
+}, [isHydrated, isLoggedIn, user]);
 
   if (!isHydrated) {
     return (

@@ -13,6 +13,7 @@ import {
   getPendingPayments,
   approveGuestPayment,
 } from "../controllers/admin.controller";
+import { deleteProduct } from "../controllers/product.controller";
 import { requireAuth, requireRole } from "../middleware/auth.middleware";
 
 const router = Router();
@@ -39,7 +40,7 @@ router.patch("/vendors/:user_id/toggle", ...adminAuth, toggleVendorStatus);
 // Guest Management
 router.get("/guests", ...adminAuth, getAllGuests);
 router.patch("/guests/:user_id/toggle", ...adminAuth, toggleGuestStatus);
-
+router.delete("/products/:id", ...adminAuth, deleteProduct);
 // Payment Management
 router.get("/payments/pending", ...adminAuth, getPendingPayments);
 router.patch("/guests/:guest_user_id/approve", ...adminAuth, approveGuestPayment);

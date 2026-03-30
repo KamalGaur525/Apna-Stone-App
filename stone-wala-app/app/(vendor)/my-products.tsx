@@ -75,7 +75,7 @@ const onRefresh = async () => {
       case "pending":
         return {
           bg: "bg-amber-500",
-          text: "text-stone-950",
+          text: "text-stone-50",
           dot: "bg-amber-300",
           label: "Pending",
         };

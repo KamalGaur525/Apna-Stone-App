@@ -6,6 +6,7 @@ import { generateToken } from "../utils/jwt.utils";
 import { z } from "zod";
 import bcrypt from "bcrypt";
 
+
 // ── Constants ───────────────────────────────────────────
 
 const OTP_EXPIRY_MINUTES = 10;
@@ -323,28 +324,34 @@ export const getPendingProducts = async (
   }
 };
 
-export const getReviewProducts = async (
-  req: AuthRequest,
-  res: Response
-): Promise<any> => {
+export const getReviewProducts = async (req: AuthRequest, res: Response): Promise<any> => {
   try {
     const page   = Math.max(1, parseInt(req.query.page as string) || 1);
     const limit  = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 10));
     const offset = (page - 1) * limit;
 
+    // <-- Status filter optional — nahi diya toh sab dikhao
+    const status = req.query.status as string | undefined;
+    const whereClause = status ? `WHERE p.status = ?` : `WHERE p.is_active = true`;
+    const queryParams = status ? [status, limit, offset] : [limit, offset];
+
     const [products]: any = await pool.query(
       `SELECT p.id, p.name, p.image_url, p.status, p.created_at,
-              v.firm_name, u.phone as vendor_phone
+              p.description, p.sub_category, p.category_id, p.rejection_reason,
+              v.firm_name, u.phone as vendor_phone,
+              c.name as category_name
        FROM products p
        JOIN vendors v ON p.vendor_id = v.id
        JOIN users u ON v.user_id = u.id
-       WHERE p.status = 'approved' AND p.is_active = true
+       JOIN categories c ON p.category_id = c.id
+       ${whereClause}
        ORDER BY p.created_at DESC LIMIT ? OFFSET ?`,
-      [limit, offset]
+      queryParams
     );
 
     const [totalRows]: any = await pool.query(
-      "SELECT COUNT(*) as count FROM products WHERE status = 'approved' AND is_active = true"
+      `SELECT COUNT(*) as count FROM products p ${whereClause}`,
+      status ? [status] : []
     );
 
     return res.status(200).json({
@@ -363,6 +370,8 @@ export const getReviewProducts = async (
   }
 };
 
+ 
+
 export const updateProductStatus = async (
   req: AuthRequest,
   res: Response
@@ -373,7 +382,7 @@ export const updateProductStatus = async (
 
     if (isNaN(Number(id)))
       return res.status(400).json({ error: "Invalid ID." });
-    if (!["approved", "rejected"].includes(status))
+    if (!["approved", "rejected", "pending"].includes(status))
       return res.status(400).json({ error: "Invalid status." });
     if (status === "rejected" && !reason)
       return res.status(400).json({ error: "Rejection reason required." });

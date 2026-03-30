@@ -167,35 +167,36 @@ export const getVendorDashboard = async (req: AuthRequest, res: Response): Promi
       [vendor.id]
     );
 
-    const [subs]: any = await pool.query(
-      `SELECT t.status, t.created_at, sp.plan_type
-       FROM transactions t
-       INNER JOIN subscription_plans sp ON sp.plan_type = t.type
-       WHERE t.user_id = ? AND t.status = 'verified'
-       ORDER BY t.created_at DESC LIMIT 1`,
-      [userId]
-    );
+const [subs]: any = await pool.query(
+  `SELECT t.status, t.created_at, sp.plan_name
+   FROM transactions t
+   INNER JOIN subscription_plans sp ON sp.id = t.plan_id
+   WHERE t.user_id = ? AND t.status = 'verified'
+     AND t.plan_expires_at > NOW()
+   ORDER BY t.created_at DESC LIMIT 1`,
+  [userId]
+);
 
-    const hasSubscription = subs.length > 0;
-
-    return res.status(200).json({
-      success: true,
-      data: {
-        firm_name: vendor.firm_name,
-        tier: vendor.tier,
-        logo_url: vendor.logo_url,
-        subscription: {
-          isActive: hasSubscription,
-          planName: hasSubscription ? subs[0].plan_type : null,
-        },
-        products: {
-          total: productStats[0].total || 0,
-          approved: productStats[0].approved || 0,
-          pending: productStats[0].pending || 0,
-          rejected: productStats[0].rejected || 0,
-        },
-      },
-    });
+const hasSubscription = subs.length > 0;
+return res.status(200).json({
+  success: true,
+  data: {
+    firm_name: vendor.firm_name,
+    tier: vendor.tier,
+    logo_url: vendor.logo_url,
+    subscription: {
+      isActive: hasSubscription,
+      planName: hasSubscription ? subs[0].plan_name : null, // <-- plan_name here too
+       expiryDate: hasSubscription ? subs[0].plan_expires_at : null, 
+    },
+    products: {
+      total: productStats[0].total || 0,
+      approved: productStats[0].approved || 0 ,
+      pending: productStats[0].pending || 0,
+      rejected: productStats[0].rejected || 0,
+    },
+  },
+});
   } catch (error) {
     console.error("GetVendorDashboard Error:", error);
     return res.status(500).json({ error: "Internal server error." });
@@ -236,10 +237,7 @@ export const getSubscriptionPlans = async (req: AuthRequest, res: Response): Pro
   }
 };
 
-/**
- * @route   POST /api/vendor/logo
- * @desc    Upload vendor logo — saves to S3, deletes old logo from S3
- */
+ 
 export const uploadVendorLogo = async (req: AuthRequest, res: Response): Promise<any> => {
   try {
     const userId = req.user?.id;

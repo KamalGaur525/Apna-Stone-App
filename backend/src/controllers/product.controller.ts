@@ -326,43 +326,44 @@ export const updateProduct = async (req: AuthRequest, res: Response): Promise<an
  */
 export const deleteProduct = async (req: AuthRequest, res: Response): Promise<any> => {
   try {
-    const userId = req.user?.id;
-    if (!userId) return res.status(401).json({ error: "Unauthorized" });
-
     const { id } = req.params;
+    const userId = req.user?.id;
+    const userRole = req.user?.role;
+
     if (isNaN(Number(id))) return res.status(400).json({ error: "Invalid Product ID format" });
 
-    const [vendor]: any = await pool.query("SELECT id FROM vendors WHERE user_id = ?", [userId]);
-    if (vendor.length === 0) return res.status(404).json({ error: "Vendor profile not found" });
-    const vendorId = vendor[0].id;
+    let product;
 
-    // Fetch URLs before delete for S3 cleanup
-    const [product]: any = await pool.query(
-      "SELECT image_url, video_url FROM products WHERE id = ? AND vendor_id = ?",
-      [id, vendorId]
-    );
+    if (userRole === 'admin') {
+      const [rows]: any = await pool.query(
+        "SELECT image_url, video_url FROM products WHERE id = ?", [id]
+      );
+      product = rows;
+    } else {
+      const [vendor]: any = await pool.query("SELECT id FROM vendors WHERE user_id = ?", [userId]);
+      if (vendor.length === 0) return res.status(404).json({ error: "Vendor profile not found" });
 
-    if (product.length === 0) {
-      return res.status(403).json({ error: "Product not found or you cannot delete it" });
+      const [rows]: any = await pool.query(
+        "SELECT image_url, video_url FROM products WHERE id = ? AND vendor_id = ?",
+        [id, vendor[0].id]
+      );
+      product = rows;
     }
 
-    // Hard delete from DB
-    await pool.query("DELETE FROM products WHERE id = ? AND vendor_id = ?", [id, vendorId]);
+    if (product.length === 0)
+      return res.status(403).json({ error: "Product not found or you cannot delete it" });
 
-    // Delete files from S3 (non-blocking — fire and forget)
+    await pool.query("DELETE FROM products WHERE id = ?", [id]);
+
     if (product[0].image_url) deleteFromS3(product[0].image_url);
     if (product[0].video_url) deleteFromS3(product[0].video_url);
 
-    return res.status(200).json({
-      success: true,
-      message: "Product permanently deleted.",
-    });
+    return res.status(200).json({ success: true, message: "Product permanently deleted." });
   } catch (error) {
     console.error("Delete Product Error:", error);
     return res.status(500).json({ error: "Internal server error" });
   }
 };
-
 /**
  * @route   GET /api/vendor/products/:id
  */

@@ -66,7 +66,12 @@ export const PAYMENT_ENDPOINTS = {
   CREATE_ORDER: "/payment/create-order",
   VERIFY_PAYMENT: "/payment/verify",
 };
-
+export const SUBSCRIPTION_ENDPOINTS = {
+  PLANS: "/subscriptions/plans",
+  INITIATE: "/subscriptions/initiate",
+  PURCHASE: "/subscriptions/purchase",
+  MY_PLAN: "/subscriptions/my-plan",
+};
 // ── Visualizer ──────────────────────────────────────────
 export const VISUALIZER_ENDPOINTS = {
   GENERATE: "/visualizer/generate",

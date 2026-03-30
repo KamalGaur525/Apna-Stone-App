@@ -91,11 +91,13 @@ export interface Product {
   image_url: string | null;
   video_url: string | null;
   status: ProductStatus;
+  category_name: string | null;
   rejection_reason: string | null;
-  // Joined fields for UI
+  created_at: string;          // <-- ADD
+   
   firm_name?: string;
+  vendor_phone?: string | null; // <-- ADD
 }
-
 export interface DashboardStats {
   totalVendors: number;
   totalGuests: number;

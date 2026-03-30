@@ -221,9 +221,11 @@ export const getCategoryProducts = async (
     // Get category + subcategories
     const [products]: any = await pool.query(
       `SELECT 
-        p.id, p.name, p.image_url, p.sub_category, p.third_category, p.description,
-        v.firm_name as vendor_name, v.location as vendor_location,
-        c.name as category_name
+  p.id, p.name, p.image_url, p.sub_category, p.third_category, p.description,
+  v.id as vendor_id, v.firm_name, v.firm_name as vendor_name, 
+  v.location, v.location as vendor_location, v.logo_url, u.phone as vendor_phone,
+  
+  c.name as category_name
        FROM products p
        JOIN vendors v ON p.vendor_id = v.id
        JOIN users u ON v.user_id = u.id

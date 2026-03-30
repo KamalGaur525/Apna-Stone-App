@@ -15,6 +15,7 @@ import serviceRoutes from "./routes/service.routes";
 import planRoutes from "./routes/plan.routes";
 import guestRoutes from "./routes/guest.routes";
 import visualizerRouter from './routes/visualizer.routes';
+import subscriptionRoutes from "./routes/subscription.routes";
 
 dotenv.config();
 
@@ -71,6 +72,7 @@ app.use("/api/services", serviceRoutes);
 app.use("/api/plans", planRoutes);
 app.use("/api/guest", guestRoutes);
 app.use('/api/visualizer', visualizerRouter);
+app.use("/api/subscriptions", subscriptionRoutes);
 
 // 4. 404 Handler
 app.use((req: Request, res: Response) => {

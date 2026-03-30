@@ -78,7 +78,7 @@ const verifyOtp = async () => {
       setShowProfileForm(true);
     } else {
       // ✅ Existing user — seedha login
-      await login({ id: "", role: "guest" }, response.token);
+      await login({ id: response.id || "", role: "guest", name: response.name || "" }, response.token);
     }
   } catch (error: any) {
     const message =
@@ -140,7 +140,7 @@ const verifyOtp = async () => {
     );
 
     // ✅ Ab login() call karo — _layout redirect karega
-    await login({ id: "", role: "guest" }, tempToken!);
+    await login({ id: "", role: "guest", name: formattedName }, tempToken!);
   } catch (error: any) {
     const message =
       error?.response?.data?.error || "Failed to save profile. Try again.";

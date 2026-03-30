@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import axiosInstance from '../lib/axios';
 import { API } from '../constants/api';
-import type { Product, ApiResponse } from '../types';
+import type { Product, ApiResponse, ProductStatus } from '../types';
 
 interface HookError {
   message: string;
@@ -15,7 +15,8 @@ interface ActionResult {
 }
 
 export function useProducts() {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [pendingProducts, setPendingProducts] = useState<Product[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isRefetching, setIsRefetching] = useState<boolean>(false);
   const [error, setError] = useState<HookError | null>(null);
@@ -27,17 +28,14 @@ export function useProducts() {
     setError(null);
 
     try {
-      const response = await axiosInstance.get<ApiResponse<Product[]>>(
-        API.PRODUCTS_REVIEW,
-        { signal }
-      );
+      const [pendingRes, allRes] = await Promise.all([
+        axiosInstance.get<ApiResponse<Product[]>>(API.PRODUCTS_PENDING, { signal }),
+        axiosInstance.get<ApiResponse<Product[]>>(API.PRODUCTS_REVIEW, { signal }),
+      ]);
 
-      if (response.data.success) {
-        setProducts(response.data.data);
-        hasFetchedRef.current = true;
-      } else {
-        setError({ message: response.data.message || 'Failed to fetch products.' });
-      }
+      if (pendingRes.data.success) setPendingProducts(pendingRes.data.data);
+      if (allRes.data.success) setAllProducts(allRes.data.data);
+      hasFetchedRef.current = true;
     } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.code === 'ERR_CANCELED') return;
@@ -65,9 +63,9 @@ export function useProducts() {
   const approveProduct = useCallback(async (id: number): Promise<ActionResult> => {
     markProcessing(id, true);
     try {
-      const response = await axiosInstance.patch(API.PRODUCT_APPROVE(id));
+      const response = await axiosInstance.patch(API.PRODUCT_APPROVE(id), { status: 'approved' });
       if (response.data.success) {
-        setProducts((prev) => prev.filter((p) => p.id !== id));
+        setPendingProducts((prev) => prev.filter((p) => p.id !== id));
         return { success: true };
       }
       return { success: false, message: response.data.message || 'Approval failed.' };
@@ -84,9 +82,9 @@ export function useProducts() {
   const rejectProduct = useCallback(async (id: number, reason: string): Promise<ActionResult> => {
     markProcessing(id, true);
     try {
-      const response = await axiosInstance.patch(API.PRODUCT_REJECT(id), { reason });
+      const response = await axiosInstance.patch(API.PRODUCT_REJECT(id), { status: 'rejected', reason });
       if (response.data.success) {
-        setProducts((prev) => prev.filter((p) => p.id !== id));
+        setPendingProducts((prev) => prev.filter((p) => p.id !== id));
         return { success: true };
       }
       return { success: false, message: response.data.message || 'Rejection failed.' };
@@ -100,6 +98,53 @@ export function useProducts() {
     }
   }, []);
 
+  const deleteProduct = useCallback(async (id: number): Promise<ActionResult> => {
+    markProcessing(id, true);
+    try {
+      const response = await axiosInstance.delete(API.PRODUCT_DELETE(id));
+      if (response.data.success) {
+        setAllProducts((prev) => prev.filter((p) => p.id !== id));
+        return { success: true };
+      }
+      return { success: false, message: response.data.message || 'Delete failed.' };
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        return { success: false, message: err.response?.data?.message || err.message };
+      }
+      return { success: false, message: 'An unexpected error occurred.' };
+    } finally {
+      markProcessing(id, false);
+    }
+  }, []);
+
+  // <-- updateStatus: koi bhi status set karo + dono lists refresh hongi
+  const updateStatus = useCallback(async (
+    id: number,
+    status: ProductStatus,
+    reason?: string
+  ): Promise<ActionResult> => {
+    markProcessing(id, true);
+    try {
+      const response = await axiosInstance.patch(API.PRODUCT_APPROVE(id), {
+        status,
+        reason: reason || null,
+      });
+      if (response.data.success) {
+        // Dono lists refresh — status change hone pe sahi tab mein dikhe
+        await fetchProducts();
+        return { success: true };
+      }
+      return { success: false, message: response.data.message || 'Update failed.' };
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        return { success: false, message: err.response?.data?.message || err.message };
+      }
+      return { success: false, message: 'An unexpected error occurred.' };
+    } finally {
+      markProcessing(id, false);
+    }
+  }, [fetchProducts]);
+
   useEffect(() => {
     const controller = new AbortController();
     fetchProducts(controller.signal);
@@ -110,13 +155,16 @@ export function useProducts() {
   const isProcessing = useCallback((id: number) => processingIds.has(id), [processingIds]);
 
   return {
-    products,
+    pendingProducts,
+    allProducts,
     isLoading,
     isRefetching,
     error,
     refetch,
     approveProduct,
     rejectProduct,
+    deleteProduct,
+    updateStatus,   // <-- added
     isProcessing,
   };
 }

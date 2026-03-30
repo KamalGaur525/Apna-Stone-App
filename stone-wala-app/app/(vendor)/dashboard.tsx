@@ -71,7 +71,7 @@ const onRefresh = async () => {
       setSubscription({
         isActive: data.subscription.isActive,
         planName: data.subscription.planName,
-        expiryDate: null,
+        expiryDate: data.subscription.expiryDate ?? null,
       });
 
       // ✅ Real product stats from backend
@@ -108,9 +108,7 @@ const onRefresh = async () => {
     };
 
   // ── Derived Data ─────────────────────────────────────
-  const totalViews = stats.approved * 1;
-  const totalLeads = stats.approved * 1;
-  const totalOrders = Math.floor(stats.approved * 0.8);
+ 
 
   const initials =
     profile?.firmName
@@ -299,31 +297,31 @@ const onRefresh = async () => {
 
           <View className="bg-white flex-row justify-between mr-3 p-5 rounded-3xl w-44 border border-stone-100">
             <View className="flex-col justify-between items-center">
-              <Text className="text-2xl font-black text-stone-900">{totalViews}</Text>
-              <Text className="text-[10px] text-stone-400 uppercase">Views</Text>
+              <Text className="text-2xl font-black text-stone-900">{stats.approved}</Text>
+              <Text className="text-[10px] text-stone-400 uppercase">Live</Text>
             </View>
             <View className="h-12 w-12 bg-stone-50 rounded-2xl items-center justify-center border border-stone-100">
-              <Ionicons name="eye" size={20} color="#3b82f6" />
+              <Ionicons name="eye" size={20} color="#059669" />
             </View>
           </View>
 
           <View className="bg-white flex-row justify-between mr-3 p-5 rounded-3xl w-44 border border-stone-100">
             <View className="flex-col justify-between items-center">
-              <Text className="text-2xl font-black text-stone-900">{totalLeads}</Text>
-              <Text className="text-[10px] text-stone-400 uppercase">Leads</Text>
+              <Text className="text-2xl font-black text-stone-900">{stats.pending}</Text>
+              <Text className="text-[10px] text-stone-400 uppercase">Pending</Text>
             </View>
             <View className="h-12 w-12 bg-stone-50 rounded-2xl items-center justify-center border border-stone-100">
-              <Ionicons name="chatbubble-ellipses" size={20} color="#d97706" />
+              <Feather name="clock" size={20} color="#d97706" />
             </View>
           </View>
 
           <View className="bg-white flex-row justify-between p-5 rounded-3xl w-44 border border-stone-100">
             <View className="flex-col justify-between items-center">
-              <Text className="text-2xl font-black text-stone-900">{totalOrders}</Text>
-              <Text className="text-[10px] text-stone-400 uppercase">Orders</Text>
+              <Text className="text-2xl font-black text-stone-900">{stats.rejected}</Text>
+              <Text className="text-[10px] text-stone-400 uppercase">Rejected</Text>
             </View>
             <View className="h-12 w-12 bg-stone-50 rounded-2xl items-center justify-center border border-stone-100">
-              <Feather name="shopping-bag" size={20} color="#059669" />
+                <Feather name="x-circle" size={20} color="#dc2626" />
             </View>
           </View>
         </ScrollView>
@@ -358,12 +356,12 @@ const onRefresh = async () => {
             <Text className="text-xs font-medium text-stone-400 mt-1">Edit details</Text>
           </Pressable>
 
-          <Pressable onPress={() => router.push("/(vendor)/subscription")}  className="bg-white w-[48%] p-5 rounded-3xl shadow-sm shadow-stone-300/30 border border-stone-100 active:opacity-75">
+          <Pressable  onPress={() => router.push("/(vendor)/subscription")}  className="bg-white w-[48%] p-5 rounded-3xl shadow-sm shadow-stone-300/30 border border-stone-100 active:opacity-75">
             <View className="h-10 w-10 bg-stone-100 rounded-2xl items-center justify-center mb-4">
               <Feather name="bar-chart-2" size={20} color="#44403c" />
             </View>
-            <Text className="font-bold text-stone-900 text-base leading-tight">Analytics</Text>
-            <Text className="text-xs font-medium text-stone-400 mt-1">Track performance</Text>
+            <Text className="font-bold text-stone-900 text-base leading-tight">My Subscription</Text>
+            <Text className="text-xs font-medium text-stone-400 mt-1">Track your plan</Text>
           </Pressable>
 
           <Pressable onPress={() => router.push("/(vendor)/settings")}
@@ -397,90 +395,7 @@ const onRefresh = async () => {
 </Pressable>
         </View>
       </View>
-
-      {/* ── PERFORMANCE GRAPH PLACEHOLDER ── */}
-      <View className="px-5 mb-7">
-        <Text className="text-base font-bold text-stone-800 tracking-tight mb-4">
-          Performance
-        </Text>
-        <View className="bg-white p-5 rounded-3xl shadow-sm shadow-stone-300/30 border border-stone-100">
-          <View className="flex-row items-end justify-between px-3 mb-3 h-20">
-            {["h-8", "h-12", "h-6", "h-16", "h-10", "h-14", "h-20"].map((h, i) => (
-              <View key={i} className={`w-6 ${h} bg-stone-100 rounded-t-lg`} />
-            ))}
-          </View>
-          <View className="flex-row items-end justify-between px-3">
-            {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
-              <Text key={i} className="w-6 text-center text-stone-300 text-[10px] font-bold">
-                {d}
-              </Text>
-            ))}
-          </View>
-          <View className="flex-row items-center justify-center mt-4 gap-x-2">
-            <Feather name="pie-chart" size={14} color="#a8a29e" />
-            <Text className="text-stone-400 font-semibold text-xs tracking-wide">
-              Chart Coming Soon
-            </Text>
-          </View>
-        </View>
-      </View>
-
-      {/* ── RECENT LEADS ── */}
-      <View className="px-5 pb-14">
-        <View className="flex-row justify-between items-center mb-4">
-          <Text className="text-base font-bold text-stone-800 tracking-tight">
-            Recent Leads
-          </Text>
-          <Pressable className="active:opacity-60">
-            <Text className="text-amber-500 text-sm font-bold">View All →</Text>
-          </Pressable>
-        </View>
-
-        <View className="bg-white rounded-3xl overflow-hidden shadow-sm shadow-stone-300/30 border border-stone-100">
-          <Pressable className="flex-row justify-between items-center px-5 py-4 active:bg-stone-50">
-            <View className="h-11 w-11 bg-amber-50 rounded-2xl items-center justify-center mr-4">
-              <Text className="text-amber-600 font-extrabold text-sm">MB</Text>
-            </View>
-            <View className="flex-1">
-              <Text className="font-bold text-stone-900 text-sm leading-tight">Marble Buyer</Text>
-              <Text className="text-xs text-stone-400 font-medium mt-0.5">Asked for price</Text>
-            </View>
-            <View className="bg-stone-100 px-2.5 py-1 rounded-xl">
-              <Text className="text-xs font-bold text-stone-500">2h</Text>
-            </View>
-          </Pressable>
-
-          <View className="h-px bg-stone-100 mx-5" />
-
-          <Pressable className="flex-row justify-between items-center px-5 py-4 active:bg-stone-50">
-            <View className="h-11 w-11 bg-emerald-50 rounded-2xl items-center justify-center mr-4">
-              <Text className="text-emerald-600 font-extrabold text-sm">GI</Text>
-            </View>
-            <View className="flex-1">
-              <Text className="font-bold text-stone-900 text-sm leading-tight">Granite Inquiry</Text>
-              <Text className="text-xs text-stone-400 font-medium mt-0.5">Bulk order</Text>
-            </View>
-            <View className="bg-stone-100 px-2.5 py-1 rounded-xl">
-              <Text className="text-xs font-bold text-stone-500">5h</Text>
-            </View>
-          </Pressable>
-
-          <View className="h-px bg-stone-100 mx-5" />
-
-          <Pressable className="flex-row justify-between items-center px-5 py-4 active:bg-stone-50">
-            <View className="h-11 w-11 bg-blue-50 rounded-2xl items-center justify-center mr-4">
-              <Text className="text-blue-600 font-extrabold text-sm">TS</Text>
-            </View>
-            <View className="flex-1">
-              <Text className="font-bold text-stone-900 text-sm leading-tight">Tile Supplier</Text>
-              <Text className="text-xs text-stone-400 font-medium mt-0.5">Requested callback</Text>
-            </View>
-            <View className="bg-stone-100 px-2.5 py-1 rounded-xl">
-              <Text className="text-xs font-bold text-stone-500">1d</Text>
-            </View>
-          </Pressable>
-        </View>
-      </View>
+ 
     </ScrollView>
   );
 }

@@ -94,7 +94,7 @@ export default function CategoryDetail() {
 
   const { setSelectedFirm } = useGuestStore();
 
-  const [products, setProducts] = useState<Product[]>([]);
+const [products, setProducts] = useState<any[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -112,6 +112,7 @@ export default function CategoryDetail() {
   }, []);
 
   const fetchProducts = async (pageNum: number) => {
+     
     try {
       if (pageNum === 1) setLoading(true);
       else setLoadingMore(true);
@@ -272,18 +273,7 @@ export default function CategoryDetail() {
             {products.map((product) => (
               <Pressable
                 key={product.id}
-                onPress={() => {
-                  setSelectedFirm({
-                    id: String(product.id),
-                    name: product.vendor_name,
-                    city: product.vendor_location || "",
-                    category: product.category_name,
-                    rating: null,
-                    image: "",
-                    phone: "",
-                  });
-                  router.push("/(guest)/firm-detail");
-                }}
+          onPress={() => router.push(`/(guest)/product/${product.id}` as any)}
                 className="bg-white border border-stone-200/80 rounded-3xl overflow-hidden active:opacity-75"
               >
                 {/* ── Product Image ── */}
@@ -394,12 +384,24 @@ export default function CategoryDetail() {
                       </Text>
                     </View>
 
-                    <View className="flex-row items-center gap-1 bg-amber-500 px-3 py-1.5 rounded-full">
+                    <Pressable onPress={() => {
+  setSelectedFirm({
+    id: String(product?.vendor_id),
+    name: product?.firm_name || "",
+    city: product?.location || "",
+    category: product?.category_name || "",
+    rating: null,
+    image: product?.logo_url || "",
+    phone: product?.vendor_phone || "",
+    email: product?.email || "",
+  });
+  router.push("/(guest)/firm-detail");
+}} className="flex-row items-center gap-1 bg-amber-500 px-3 py-1.5 rounded-full">
                       <Text className="text-white text-xs font-bold">
                         View Firm
                       </Text>
                       <Ionicons name="arrow-forward" size={11} color="white" />
-                    </View>
+                    </Pressable>
                   </View>
                 </View>
               </Pressable>

@@ -153,6 +153,15 @@ export default function Home() {
     setShowResults(false);
     setSearchResults({ firms: [], services: [] });
   };
+  const { user } = useAuthStore();
+  const initials =
+  user?.name
+    ?.split(" ")
+    .map((w: string) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase() || "GU";
+    const guestName = user?.name || "Guest User";
 
   const getTierColor = (tier: string) => {
     switch (tier) {
@@ -228,23 +237,32 @@ export default function Home() {
             <Text className="text-amber-500 text-[10px] font-extrabold uppercase tracking-[3px]">
               Stone Wala
             </Text>
-            <View className="flex-row items-center gap-2 mt-0.5">
-              <Text className="text-white text-[26px] font-black tracking-tight leading-tight">
-                Explore Stones
-              </Text>
+            <View className="flex-row items-center gap-2 mt-0.5"> 
+<Text className="text-white text-[26px] font-black tracking-tight leading-tight">
+  {guestName}
+</Text>
               <View className="w-7 h-7 rounded-full bg-amber-500/15 items-center justify-center">
                 <Ionicons name="compass-outline" size={16} color="#f59e0b" />
               </View>
             </View>
           </View>
 
-          <Pressable
+         
+          <View className="flex-row items-center gap-2">
+             <Pressable
             onPress={handleLogout}
             className="flex-row items-center bg-amber-500/15 border border-amber-500/30 active:bg-stone-800 rounded-full px-4 py-2 gap-1.5"
           >
             <Feather name="log-out" size={13} color="#d97706" />
             <Text className="text-amber-600 text-xs font-bold">Logout</Text>
           </Pressable>
+  <Pressable
+    onPress={() => router.push("/(guest)/subscription")}
+    className="h-10 w-10 rounded-full bg-amber-500 items-center justify-center"
+  >
+    <Text className="text-white font-extrabold text-sm">{initials}</Text>
+  </Pressable>
+</View>
         </View>
 
         {/* Search Bar */}

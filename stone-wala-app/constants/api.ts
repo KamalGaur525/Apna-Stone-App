@@ -2,8 +2,7 @@ import Constants from "expo-constants";
 
  
 const BASE_URL =
-  Constants.expoConfig?.extra?.apiUrl ?? "http://192.168.1.3:5000/api";
-
+  Constants.expoConfig?.extra?.apiUrl ?? "http://app.shreekarnipalace.com/api";
 export const API_CONFIG = {
   BASE_URL,
   TIMEOUT: 10000,
@@ -55,6 +54,7 @@ export const CATEGORY_ENDPOINTS = {
 // ── Admin ───────────────────────────────────────────────
 export const ADMIN_ENDPOINTS = {
   LOGIN: "/admin/login",
+   VERIFY_OTP: "/admin/verify-otp", 
   DASHBOARD_STATS: "/admin/dashboard",
   REVIEW_PRODUCTS: "/admin/products/review",
   APPROVE_PRODUCT: "/admin/products/approve",

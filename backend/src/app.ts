@@ -23,17 +23,14 @@ const app: Application = express();
 const PORT = process.env.PORT || 5000;
 const isProduction = process.env.NODE_ENV === 'production';
 
-if (isProduction && !process.env.FRONTEND_URL) {
-  console.error("🔴 FATAL ERROR: FRONTEND_URL is not defined in .env");
-  process.exit(1);
-}
+
 
 // 1. Essential Security & Middlewares
 app.use(helmet());
 app.use(cors({
-  origin: isProduction ? (process.env.FRONTEND_URL as string) : "*",
+  origin:  "*",
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-  credentials: true
+  credentials: false
 }));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));

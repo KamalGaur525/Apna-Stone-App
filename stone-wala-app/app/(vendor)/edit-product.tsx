@@ -4,6 +4,7 @@ import { getAllCategories } from "@/services/categoryService";
 import { getProductById } from "@/services/vendorService";
 import { getToken } from "@/utils/storage";
 import * as ImagePicker from "expo-image-picker";
+import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -41,9 +42,10 @@ export default function EditProduct() {
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
 
   // ── Media ────────────────────────────────────────────
-  const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
-  const [newImage, setNewImage] = useState<ImagePicker.ImagePickerAsset | null>(null);
-  const [newVideo, setNewVideo] = useState<ImagePicker.ImagePickerAsset | null>(null);
+ const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
+const [existingVideoUrl, setExistingVideoUrl] = useState<string | null>(null); // 👈 ADD
+const [newImage, setNewImage] = useState<ImagePicker.ImagePickerAsset | null>(null);
+const [newVideo, setNewVideo] = useState<ImagePicker.ImagePickerAsset | null>(null);
 
   // ── Categories ───────────────────────────────────────
   const [categories, setCategories] = useState<Category[]>([]);
@@ -97,6 +99,7 @@ export default function EditProduct() {
       setSubCategory(p.sub_category || "");
       setThirdCategory(p.third_category || "");
       setExistingImageUrl(p.image_url || null);
+      setExistingVideoUrl(p.video_url || null); // 👈 ADD
 
       const cats = catRes.data || [];
       setCategories(cats);
@@ -292,21 +295,25 @@ export default function EditProduct() {
       }
     >
       {/* ── Header ──────────────────────────────────────── */}
-      <View className="bg-stone-950 px-6 pt-14 pb-10">
-
-        {/* Back Button */}
-        <Pressable
-          onPress={() => router.back()}
-          className="flex-row items-center self-start bg-amber-500/15 border border-amber-500/30 active:bg-stone-700/15 rounded-full px-4 py-2 mb-8 gap-1.5"
-        >
-          <Text className="text-amber-600 text-sm">←</Text>
-          <Text className="text-amber-600 text-sm font-semibold">Back</Text>
-        </Pressable>
+    <LinearGradient
+              colors={["#0f3f5a", "#1f5f7a", "#3f8fb0", "#6bb6d6"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 0, y: 1 }}
+              className="p-6 "
+            >
+   
+            <Pressable
+       onPress={() => router.back()}
+       className="flex-row items-center self-start bg-white/10 border border-white/20 active:bg-white/20 rounded-full px-4 py-2 mb-8 gap-2"
+     >
+       <Text className="text-white text-sm font-bold">←</Text>
+       <Text className="text-white text-sm font-semibold tracking-wide">Back</Text>
+     </Pressable>
 
         {/* Title Row */}
         <View className="flex-row items-center gap-4">
-          <View className="p-0.5 rounded-2xl bg-amber-500/20">
-            <View className="w-14 h-14 bg-amber-500 rounded-2xl items-center justify-center">
+          <View className="p-0.5 rounded-2xl bg-sky-500/20">
+            <View className="w-14 h-14 bg-sky-500 rounded-2xl items-center justify-center">
               <Text className="text-white text-5xl">✍</Text>
             </View>
           </View>
@@ -314,27 +321,27 @@ export default function EditProduct() {
             <Text className="text-white text-2xl font-bold tracking-tight">
               Edit Product
             </Text>
-            <Text className="text-stone-400 text-sm font-medium mt-0.5">
+            <Text className="text-sky-50 text-sm font-medium mt-0.5">
               {hasChanges ? "Unsaved changes" : "No changes yet"}
             </Text>
           </View>
 
           {hasChanges && (
-            <View className="bg-amber-500/20 border border-amber-500/30 px-3 py-1.5 rounded-full self-start">
-              <Text className="text-amber-400 text-xs font-bold tracking-wide">
+            <View className="bg-sky-50 border border-sky-500/30 px-3 py-1.5 rounded-full self-start">
+              <Text className="text-sky-600 text-xs font-bold tracking-wide">
                 Edited
               </Text>
             </View>
           )}
         </View>
-      </View>
+      </LinearGradient>
 
       <View className="px-4 pt-5 pb-8 gap-4">
 
         {/* ── Product Details Card ─────────────────────── */}
         <View className="bg-white rounded-3xl border border-stone-200/60 shadow-sm overflow-hidden">
           <View className="px-5 pt-5 pb-4 flex-row items-center gap-2.5">
-            <View className="w-1.5 h-5 rounded-full bg-amber-400" />
+            <View className="w-1.5 h-5 rounded-full bg-[#6bb6d6]" />
             <Text className="text-stone-400 text-xs font-bold tracking-widest uppercase">
               Product Details
             </Text>
@@ -587,45 +594,56 @@ export default function EditProduct() {
                 </View>
               </View>
 
-              {newVideo ? (
-                <View className="bg-stone-50 border border-stone-200 rounded-2xl px-4 py-4 flex-row items-center gap-3">
-                  <View className="w-10 h-10 rounded-xl bg-green-100 items-center justify-center">
-                    <Text className="text-lg">✓</Text>
-                  </View>
-                  <View className="flex-1">
-                    <Text className="text-stone-800 text-sm font-bold">
-                      Video selected
-                    </Text>
-                    <Text
-                      className="text-stone-400 text-xs font-medium mt-0.5"
-                      numberOfLines={1}
-                    >
-                      {newVideo.fileName || "product.mp4"}
-                    </Text>
-                  </View>
-                  <Pressable
-                    onPress={() => setNewVideo(null)}
-                    className="bg-stone-200 active:bg-stone-300 px-3 py-1.5 rounded-full"
-                  >
-                    <Text className="text-stone-600 text-xs font-bold">Remove</Text>
-                  </Pressable>
-                </View>
-              ) : (
-                <Pressable
-                  onPress={pickVideo}
-                  className="bg-stone-50 border-2 border-dashed border-stone-200 rounded-2xl py-8 items-center active:bg-stone-100"
-                >
-                  <View className="w-14 h-14 rounded-2xl bg-stone-100 items-center justify-center mb-3">
-                    <Text className="text-3xl">🎥</Text>
-                  </View>
-                  <Text className="text-stone-700 text-sm font-bold">
-                    Tap to select video
-                  </Text>
-                  <Text className="text-stone-400 text-xs font-medium mt-1">
-                    MP4 — Max 60 seconds
-                  </Text>
-                </Pressable>
-              )}
+            {newVideo ? (
+  <View className="bg-stone-50 border border-stone-200 rounded-2xl px-4 py-4 flex-row items-center gap-3">
+    <View className="w-10 h-10 rounded-xl bg-green-100 items-center justify-center">
+      <Text className="text-lg">✓</Text>
+    </View>
+    <View className="flex-1">
+      <Text className="text-stone-800 text-sm font-bold">New video selected</Text>
+      <Text className="text-stone-400 text-xs font-medium mt-0.5" numberOfLines={1}>
+        {newVideo.fileName || "product.mp4"}
+      </Text>
+    </View>
+    <Pressable
+      onPress={() => setNewVideo(null)}
+      className="bg-stone-200 active:bg-stone-300 px-3 py-1.5 rounded-full"
+    >
+      <Text className="text-stone-600 text-xs font-bold">Remove</Text>
+    </Pressable>
+  </View>
+
+) : existingVideoUrl ? (  // 👈 NEW BLOCK
+  <View className="bg-stone-50 border border-stone-200 rounded-2xl px-4 py-4 flex-row items-center gap-3">
+    <View className="w-10 h-10 rounded-xl bg-blue-100 items-center justify-center">
+      <Text className="text-lg">🎥</Text>
+    </View>
+    <View className="flex-1">
+      <Text className="text-stone-800 text-sm font-bold">Current video</Text>
+      <Text className="text-stone-400 text-xs font-medium mt-0.5" numberOfLines={1}>
+        Uploaded previously
+      </Text>
+    </View>
+    <Pressable
+      onPress={pickVideo}
+      className="bg-stone-950 active:bg-stone-800 px-3 py-1.5 rounded-full"
+    >
+      <Text className="text-white text-xs font-bold">Change</Text>
+    </Pressable>
+  </View>
+
+) : (
+  <Pressable
+    onPress={pickVideo}
+    className="bg-stone-50 border-2 border-dashed border-stone-200 rounded-2xl py-8 items-center active:bg-stone-100"
+  >
+    <View className="w-14 h-14 rounded-2xl bg-stone-100 items-center justify-center mb-3">
+      <Text className="text-3xl">🎥</Text>
+    </View>
+    <Text className="text-stone-700 text-sm font-bold">Tap to select video</Text>
+    <Text className="text-stone-400 text-xs font-medium mt-1">MP4 — Max 60 seconds</Text>
+  </Pressable>
+)}
             </View>
           </View>
         </View>
@@ -635,7 +653,7 @@ export default function EditProduct() {
           onPress={handleSubmit}
           disabled={submitting || !hasChanges}
           className={`rounded-2xl py-4 px-5 shadow-sm items-center mt-1 ${
-            hasChanges ? "bg-amber-500 active:bg-amber-400" : "bg-stone-200"
+            hasChanges ? "bg-sky-400 active:bg-sky-500" : "bg-stone-200"
           }`}
         >
           {submitting ? (

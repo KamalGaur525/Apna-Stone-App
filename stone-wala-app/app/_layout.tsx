@@ -36,10 +36,10 @@ function AppShell() {
       const { getMyPlan } = await import("@/services/subscriptionService");
       const res = await getMyPlan();
 
-      if (!res.hasActivePlan) {
-        router.replace("/(auth)/subscription");
-        return;
-      }
+      // if (!res.hasActivePlan) {
+      //   router.replace("/(auth)/subscription");
+      //   return;
+      // }
 
       if (user?.role === "vendor") {
         router.replace("/(vendor)/dashboard");

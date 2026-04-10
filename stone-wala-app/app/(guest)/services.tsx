@@ -1,5 +1,6 @@
 import api from "@/services/api";
-import { Ionicons } from "@expo/vector-icons";
+import { Feather, Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -28,16 +29,8 @@ interface ServiceGroup {
 }
 
 const PALETTE = [
-  { bg: "#fef3c7", text: "#92400e" },
-  { bg: "#dbeafe", text: "#1e40af" },
-  { bg: "#dcfce7", text: "#166534" },
-  { bg: "#fce7f3", text: "#9d174d" },
-  { bg: "#ede9fe", text: "#5b21b6" },
-  { bg: "#ffedd5", text: "#9a3412" },
-  { bg: "#f0fdf4", text: "#14532d" },
-  { bg: "#fdf2f8", text: "#86198f" },
-  { bg: "#eff6ff", text: "#1d4ed8" },
-  { bg: "#fefce8", text: "#713f12" },
+  { bg: "#e0f2fe", text: "#1f5f7a" }
+ 
 ];
 
 export default function Services() {
@@ -123,75 +116,94 @@ export default function Services() {
       }
     >
       {/* ── HEADER ── */}
-      <View className="bg-stone-950 px-5 pt-5 pb-3">
-        <View className="flex-row items-start justify-between">
-          {/* Left — Title */}
-          <View className="flex-row items-center gap-3">
-            <View className="w-1.5 h-10 rounded-full bg-amber-400" />
-            <View className="gap-0.5">
-              <Text className="text-amber-500 text-[10px] font-extrabold tracking-[3px] uppercase">
-                On Demand
-              </Text>
-              <Text className="text-white text-2xl font-extrabold tracking-tight leading-tight">
-                Services
-              </Text>
-              <Text className="text-stone-500 text-xs font-medium">
-                {totalProviders} providers available
-              </Text>
-            </View>
-          </View>
+       <LinearGradient
+  colors={["#0f3f5a", "#1f5f7a", "#3f8fb0", "#6bb6d6"]}
+  start={{ x: 0, y: 0 }}
+  end={{ x: 0, y: 1 }}
+  className="px-5 pt-5 pb-3 "
+>
+  <View className="flex-row items-center justify-between">
+    
+    {/* Left — Title */}
+    <View className="flex-row items-center gap-3">
+      
+      <View className="w-1.5 h-10 rounded-full bg-[#c1d7e0]" />
+      
+      <View className="gap-0.5">
+        <Text className="text-[#a0d3e6] text-[10px] font-extrabold tracking-[3px] uppercase">
+          On Demand
+        </Text>
 
-          {/* Right — Back button */}
-          <Pressable
-            onPress={() => router.back()}
-            className="flex-row items-center bg-amber-500/15 border border-amber-500/30 active:bg-stone-700/15 rounded-full px-4 py-2 gap-1.5"
-          >
-            <Text className="text-amber-600 text-sm">←</Text>
-            <Text className="text-amber-600 text-sm font-semibold">Back</Text>
-          </Pressable>
-        </View>
+        <Text className="text-white text-2xl font-extrabold tracking-tight leading-tight">
+          Services
+        </Text>
+
+        <Text className="text-[#d7d9dd] text-xs font-medium">
+          {totalProviders} providers available
+        </Text>
       </View>
+    </View>
+
+    {/* Right — Back button */}
+   
+       <Pressable
+      onPress={() => router.back()}
+      className="flex-row items-center justify-center bg-white/10 border border-white/20 active:bg-white/20 rounded-full px-4 py-2 gap-2"
+    >
+      <Feather name="arrow-left" size={13} color="#ffffff" />
+      <Text className="text-white text-sm font-semibold tracking-wide">
+        Back
+      </Text>
+    </Pressable>
+
+  </View>
+</LinearGradient>
 
       {/* ── TYPE FILTER ── */}
-      <View className="pt-5 gap-3">
-        <View className="flex-row items-center gap-3 px-5">
-          <View className="w-1.5 h-6 rounded-full bg-amber-400" />
-          <View>
-            <Text className="text-[10px] font-extrabold tracking-widest text-amber-500 uppercase">
-              Browse
-            </Text>
-            <Text className="text-stone-900 text-base font-extrabold leading-tight -mt-0.5">
-              Filter by Service
-            </Text>
-          </View>
-        </View>
+    <View className="pt-5 gap-3">
+  
+  <View className="flex-row items-center gap-3 px-5">
+    
+    <View className="w-1.5 h-6 rounded-full bg-[#5c99b3]" />
+    
+    <View>
+      <Text className="text-[10px] font-extrabold tracking-widest text-[#5c99b3] uppercase">
+        Browse
+      </Text>
+      <Text className="text-[#0f3f5a] text-base font-extrabold leading-tight -mt-0.5">
+        Filter by Service
+      </Text>
+    </View>
+  </View>
 
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 20, gap: 8 }}
+  <ScrollView
+    horizontal
+    showsHorizontalScrollIndicator={false}
+    contentContainerStyle={{ paddingHorizontal: 20, gap: 8 }}
+  >
+    {serviceTypes.map((type) => (
+      <Pressable
+        key={type}
+        onPress={() => setSelectedType(type)}
+        className={`px-5 py-2.5 rounded-2xl border active:opacity-75 ${
+          selectedType === type
+            ? "bg-[#1f5f7a] border-[#1f5f7a]"
+            : "bg-[#f0f9ff] border-[#dbeafe]"
+        }`}
+      >
+        <Text
+          className={`text-xs font-bold ${
+            selectedType === type
+              ? "text-white"
+              : "text-[#6b9fb8]"
+          }`}
         >
-          {serviceTypes.map((type) => (
-            <Pressable
-              key={type}
-              onPress={() => setSelectedType(type)}
-              className={`px-5 py-2.5 rounded-2xl border active:opacity-75 ${
-                selectedType === type
-                  ? "bg-stone-900 border-stone-900"
-                  : "bg-white border-stone-200/80"
-              }`}
-            >
-              <Text
-                className={`text-xs font-bold ${
-                  selectedType === type ? "text-white" : "text-stone-600"
-                }`}
-              >
-                {type}
-              </Text>
-            </Pressable>
-          ))}
-        </ScrollView>
-      </View>
+          {type}
+        </Text>
+      </Pressable>
+    ))}
+  </ScrollView>
+</View>
 
       {/* ── SERVICE GROUPS ── */}
       <View className="px-4 pt-5 pb-10 gap-6">
@@ -251,8 +263,8 @@ export default function Services() {
                           >
                             {provider.name}
                           </Text>
-                          <View className="self-start bg-amber-50 border border-amber-200 px-3 py-1 rounded-full">
-                            <Text className="text-amber-600 text-xs font-bold tracking-wide">
+                          <View className="self-start bg-sky-50 border border-sky-200 px-3 py-1 rounded-full">
+                            <Text className="text-sky-600 text-xs font-bold tracking-wide">
                               {group.type_name}
                             </Text>
                           </View>

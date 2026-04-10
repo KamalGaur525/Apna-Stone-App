@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as ImagePicker from 'expo-image-picker';
+import { LinearGradient } from 'expo-linear-gradient';
 import * as MediaLibrary from 'expo-media-library';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useRef, useState } from 'react';
@@ -9,6 +10,7 @@ import {
   Alert,
   Dimensions,
   Image,
+  Pressable,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -188,39 +190,38 @@ export default function RoomVisualizerScreen() {
   return (
  
 <>
-      {/* ── Header ── */}
-      <View className="bg-stone-950 px-4 py-3.5 flex-row items-center gap-3">
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={{
-            backgroundColor: 'rgba(245,158,11,0.15)',
-            borderWidth: 1,
-            borderColor: 'rgba(245,158,11,0.3)',
-            borderRadius: 10,
-            padding: 8,
-          }}
-        >
-          <Ionicons name="arrow-back" size={20} color="#f59e0b" />
-        </TouchableOpacity>
+      {/* ── Header ──────────────────────────────────────── */}
+<LinearGradient
+  colors={["#0f3f5a", "#1f5f7a", "#3f8fb0", "#6bb6d6"]}
+  start={{ x: 0, y: 0 }}
+  end={{ x: 0, y: 1 }}
+  className="px-5 py-5 flex-row items-center"
+>
 
-        <View className="flex-1">
-          <Text className="text-stone-50 text-lg font-bold tracking-tight">Room Visualizer</Text>
-          <Text className="text-stone-400 text-xs mt-0.5">AI-powered marble floor preview</Text>
-        </View>
+  {/* Back Button */}
+  <Pressable
+    onPress={() => router.back()}
+    className="flex-row items-center bg-white/10 border border-white/20 active:bg-white/20 rounded-xl px-3 py-2 mr-3"
+  >
+    <Text className="text-white text-sm font-bold">←</Text>
+  </Pressable>
 
-        <View
-          style={{
-            backgroundColor: 'rgba(245,158,11,0.15)',
-            borderWidth: 1,
-            borderColor: 'rgba(245,158,11,0.3)',
-            borderRadius: 8,
-            paddingHorizontal: 10,
-            paddingVertical: 4,
-          }}
-        >
-          <Text style={{ color: '#f59e0b', fontSize: 11, fontWeight: '600' }}>AI</Text>
-        </View>
-      </View>
+  {/* Title Section */}
+  <View className="flex-1 justify-center">
+    <Text className="text-white text-base font-bold tracking-tight">
+      Room Visualizer
+    </Text>
+    <Text className="text-sky-100 text-xs mt-0.5">
+      AI-powered marble floor preview
+    </Text>
+  </View>
+
+  {/* AI Badge */}
+  <View className="bg-white/90 px-3 py-1 rounded-lg ml-3">
+    <Text className="text-[#1f5f7a] text-xs font-bold">AI</Text>
+  </View>
+
+</LinearGradient>
 
       <ScrollView
         contentContainerStyle={{ padding: 16, paddingBottom: 48 }}
@@ -229,9 +230,9 @@ export default function RoomVisualizerScreen() {
       >
 
         {/* ── Info banner ── */}
-        <View className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-5 flex-row gap-3 items-start">
-          <Ionicons name="sparkles" size={18} color="#d97706" style={{ marginTop: 1 }} />
-          <Text className="text-amber-800 text-sm flex-1 leading-5">
+        <View className="bg-sky-50 border border-sky-200 rounded-2xl p-4 mb-5 flex-row gap-3 items-start">
+          <Ionicons name="sparkles" size={18} color="#5c99b3" style={{ marginTop: 1 }} />
+          <Text className="text-sky-600 text-sm flex-1 leading-5">
             Upload a room photo and a marble slab image. Our AI will seamlessly replace the floor with your chosen marble texture.
           </Text>
         </View>
@@ -258,51 +259,64 @@ export default function RoomVisualizerScreen() {
 
         {/* ── Generate button ── */}
         <TouchableOpacity
-          onPress={handleGenerate}
-          disabled={!canGenerate}
-          className="rounded-2xl py-4 flex-row items-center justify-center gap-2.5 mb-5"
-          style={{ backgroundColor: canGenerate ? '#1c1917' : '#d6d3d1' }}
-          activeOpacity={0.85}
-        >
-          {isLoading ? (
-            <ActivityIndicator size="small" color="#f59e0b" />
-          ) : (
-            <Ionicons name="sparkles" size={20} color={canGenerate ? '#f59e0b' : '#9ca3af'} />
-          )}
-          <Text
-            className="text-base font-bold tracking-tight"
-            style={{ color: canGenerate ? '#fafaf9' : '#9ca3af' }}
-          >
-            {isLoading ? 'Generating…' : 'Generate Floor'}
-          </Text>
-        </TouchableOpacity>
+  onPress={handleGenerate}
+  disabled={!canGenerate}
+  className={`rounded-2xl py-4 flex-row items-center justify-center gap-2.5 mb-5 ${
+    canGenerate ? 'bg-[#1f5f7a]' : 'bg-sky-50 border border-sky-200'
+  }`}
+  activeOpacity={0.85}
+>
+  {isLoading ? (
+    <ActivityIndicator size="small" color="#5c99b3" />
+  ) : (
+    <Ionicons
+      name="sparkles"
+      size={20}
+      color={canGenerate ? '#a0d3e6' : '#3f8fb0'}
+    />
+  )}
+
+  <Text
+    className={`text-base font-bold tracking-tight ${
+      canGenerate ? 'text-[#f0f9ff]' : 'text-[#3f8fb0]'
+    }`}
+  >
+    {isLoading ? 'Generating…' : 'Generate Floor'}
+  </Text>
+</TouchableOpacity>
 
         {/* ── Progress card ── */}
-        {isLoading && (
-          <View className="bg-white rounded-3xl p-5 mb-5 shadow-sm">
-            <View className="flex-row justify-between items-center mb-3">
-              <Text className="text-stone-800 font-semibold text-sm flex-1 mr-2" numberOfLines={1}>
-                {currentMsg}
-              </Text>
-              <Text className="font-bold text-sm" style={{ color: '#f59e0b' }}>
-                {progress}%
-              </Text>
-            </View>
+       {isLoading && (
+  <View className="bg-[#f0f9ff] rounded-3xl p-5 mb-5 shadow-sm">
+    
+    <View className="flex-row justify-between items-center mb-3">
+      <Text
+        className="text-[#1f5f7a] font-semibold text-sm flex-1 mr-2"
+        numberOfLines={1}
+      >
+        {currentMsg}
+      </Text>
 
-            <View className="bg-stone-100 rounded-full overflow-hidden" style={{ height: 6 }}>
-              <View
-                className="h-full rounded-full"
-                style={{ width: `${progress}%`, backgroundColor: '#f59e0b' }}
-              />
-            </View>
+      <Text className="font-bold text-sm text-[#5c99b3]">
+        {progress}%
+      </Text>
+    </View>
 
-            <Text className="text-stone-400 text-xs mt-3 text-center">
-              {stage === 'uploading'
-                ? 'Uploading images to AI server…'
-                : 'AI is processing your room. This may take 30–90 seconds.'}
-            </Text>
-          </View>
-        )}
+    <View className="bg-[#dbeafe] rounded-full overflow-hidden h-[6px]">
+      <View
+        className="h-full rounded-full bg-[#3f8fb0]"
+        style={{ width: `${progress}%` }}
+      />
+    </View>
+
+    <Text className="text-[#6b9fb8] text-xs mt-3 text-center">
+      {stage === 'uploading'
+        ? 'Uploading images to AI server…'
+        : 'AI is processing your room. This may take 30–90 seconds.'}
+    </Text>
+
+  </View>
+)}
 
         {/* ── Error card ── */}
         {stage === 'error' && errorMsg && (
@@ -392,8 +406,8 @@ function ImagePickCard({
           </>
         ) : (
           <View className="items-center gap-2">
-            <View className="bg-amber-50 rounded-2xl p-3.5">
-              <Ionicons name={icon} size={28} color="#f59e0b" />
+            <View className="bg-sky-50 rounded-2xl p-3.5">
+              <Ionicons name={icon} size={28} color="#5c99b3" />
             </View>
             <Text className="text-stone-500 text-xs font-medium">Tap to upload</Text>
           </View>
@@ -432,16 +446,16 @@ function ResultCard({
         <TouchableOpacity
           onPress={onDownload}
           disabled={downloading}
-          className="rounded-2xl py-3.5 flex-row items-center justify-center gap-2"
-          style={{ backgroundColor: '#1c1917' }}
+          className="rounded-2xl py-3.5 flex-row items-center justify-center gap-2 bg-sky-50 border border-sky-200 text-sky-600"
+         
           activeOpacity={0.85}
         >
           {downloading ? (
             <ActivityIndicator size="small" color="#f59e0b" />
           ) : (
-            <Ionicons name="download-outline" size={20} color="#f59e0b" />
+            <Ionicons name="download-outline" size={20} color="#3f8fb0" />
           )}
-          <Text className="text-stone-50 font-bold text-base">
+          <Text className="text-sky-600 font-bold text-base">
             {downloading ? 'Saving…' : 'Save to Gallery'}
           </Text>
         </TouchableOpacity>
@@ -476,8 +490,8 @@ function TipsCard() {
       <View className="gap-3">
         {tips.map((tip, i) => (
           <View key={i} className="flex-row gap-3 items-start">
-            <View className="bg-amber-50 rounded-xl p-2">
-              <Ionicons name={tip.icon} size={16} color="#d97706" />
+            <View className="bg-sky-50 rounded-xl p-2">
+              <Ionicons name={tip.icon} size={16} color="#3f8fb0" />
             </View>
             <Text className="text-stone-600 text-sm flex-1 leading-5 mt-1">{tip.text}</Text>
           </View>

@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { useAuthStore } from '../store/authStore';
 
-const BASE_URL = import.meta.env.VITE_API_URL as string || 'http://192.168.1.3:5000/api';
+const BASE_URL = import.meta.env.VITE_API_URL as string || 'https://apnastone.com/api';
 
 const axiosInstance = axios.create({
   baseURL: BASE_URL,

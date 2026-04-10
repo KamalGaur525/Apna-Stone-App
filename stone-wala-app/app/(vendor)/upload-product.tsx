@@ -3,6 +3,7 @@ import { API_CONFIG, VENDOR_ENDPOINTS } from "@/constants/api";
 import { getAllCategories } from "@/services/categoryService";
 import { getToken } from "@/utils/storage";
 import * as ImagePicker from "expo-image-picker";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -114,6 +115,8 @@ export default function UploadProduct() {
     if (!validate()) return;
     try {
       setSubmitting(true);
+      console.log("IMAGE →", { mimeType: image?.mimeType, fileName: image?.fileName, uri: image?.uri });
+console.log("VIDEO →", { mimeType: video?.mimeType, fileName: video?.fileName, uri: video?.uri });
       const token = await getToken();
       const formData = new FormData();
       formData.append("name", name.trim());
@@ -134,6 +137,7 @@ export default function UploadProduct() {
           name: video.fileName || "product.mp4",
         } as any);
       }
+      console.log("URL →", `${API_CONFIG.BASE_URL}${VENDOR_ENDPOINTS.UPLOAD_PRODUCT}`);
       const response = await fetch(
         `${API_CONFIG.BASE_URL}${VENDOR_ENDPOINTS.UPLOAD_PRODUCT}`,
         {
@@ -142,15 +146,19 @@ export default function UploadProduct() {
           body: formData,
         }
       );
-      const data = await response.json();
+      const data = await response.text();
+      console.log("STATUS →", response.status);
+console.log("RESPONSE →", JSON.stringify(data));
       if (!response.ok) {
-        Alert.alert("Error", data.error || "Failed to upload product.");
+        Alert.alert("Error" , "Failed to upload product.");
         return;
       }
       Alert.alert("Success 🎉", "Product uploaded and is now LIVE!", [
         { text: "OK", onPress: () => router.replace("/(vendor)/dashboard") },
       ]);
-    } catch {
+    } catch (err) {  // 👈 "err" add karo yahan
+  // 👇 ADD THIS LINE HERE
+  console.log("CATCH ERROR →", err);
       Alert.alert("Error", "Something went wrong. Try again.");
     } finally {
       setSubmitting(false);
@@ -167,21 +175,26 @@ export default function UploadProduct() {
       nestedScrollEnabled={true}
     >
       {/* ── Header ──────────────────────────────────────── */}
-      <View className="bg-stone-950 px-6 pt-14 pb-10">
+     <LinearGradient
+       colors={["#0f3f5a", "#1f5f7a", "#3f8fb0", "#6bb6d6"]}
+       start={{ x: 0, y: 0 }}
+       end={{ x: 0, y: 1 }}
+       className="px-6 pt-14 pb-10"
+     >
 
         {/* Back Button */}
-        <Pressable
-          onPress={() => router.back()}
-          className="flex-row items-center self-start bg-amber-500/15 border border-amber-500/30 active:bg-stone-700/15 rounded-full px-4 py-2 mb-8 gap-1.5"
-        >
-          <Text className="text-amber-600 text-sm">←</Text>
-          <Text className="text-amber-600 text-sm font-semibold">Back</Text>
-        </Pressable>
+       <Pressable
+    onPress={() => router.back()}
+    className="flex-row items-center self-start bg-white/10 border border-white/20 active:bg-white/20 rounded-full px-4 py-2 mb-8 gap-2"
+  >
+    <Text className="text-white text-sm font-bold">←</Text>
+    <Text className="text-white text-sm font-semibold tracking-wide">Back</Text>
+  </Pressable>
 
         {/* Title Row */}
         <View className="flex-row items-center gap-4">
-          <View className="p-0.5 rounded-2xl bg-amber-500/20">
-            <View className="w-14 h-14 bg-amber-500 rounded-2xl items-center justify-center">
+          <View className="p-0.5 rounded-2xl bg-sky-500/20">
+            <View className="w-14 h-14 bg-[#6bb6d6] rounded-2xl items-center justify-center">
               <Text className="text-white text-2xl font-black">+</Text>
             </View>
           </View>
@@ -189,12 +202,12 @@ export default function UploadProduct() {
             <Text className="text-white text-2xl font-bold tracking-tight">
               Upload Product
             </Text>
-            <Text className="text-stone-400 text-sm font-medium mt-0.5">
+            <Text className="text-sky-50 text-sm font-medium mt-0.5">
               Add to marketplace · Goes live instantly
             </Text>
           </View>
         </View>
-      </View>
+    </LinearGradient>
 
       <View className="px-4 pt-5 pb-8 gap-4">
 
@@ -477,7 +490,7 @@ export default function UploadProduct() {
         <Pressable
           onPress={handleSubmit}
           disabled={submitting}
-          className="bg-amber-500 active:bg-amber-400 rounded-2xl py-4 px-5 shadow-sm items-center mt-1"
+          className="bg-[#6bb6d6] active:bg-[#5aa8c8] rounded-2xl py-4 px-5 shadow-sm items-center mt-1"
         >
           {submitting ? (
             <ActivityIndicator color="#1c1917" />

@@ -5,6 +5,8 @@ import {
   getTransactionHistory
 } from "@/services/subscriptionService";
 import { useAuthStore } from "@/store/authStore";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -183,24 +185,29 @@ const handleSubscribe = async () => {
       }
     >
       {/* ── Header ── */}
-      <View className="bg-stone-950 px-6 pt-14 pb-8">
+       <LinearGradient
+            colors={["#0f3f5a", "#1f5f7a", "#3f8fb0", "#6bb6d6"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
+            className="px-6 pt-8 pb-4"
+          >
         <View className="items-start flex-row gap-3 mb-2">
-          <View className="p-1 rounded-3xl bg-amber-500/20">
-            <View className="w-20 h-20 rounded-2xl bg-amber-500/20 border border-amber-500/30 items-center justify-center">
-              <Text className="text-4xl">👑</Text>
+          <View className="p-1 rounded-3xl bg-sky-500/20">
+            <View className="w-20 h-20 rounded-2xl bg-[#6bb6d6] border border-sky-500/30 items-center justify-center">
+             <Ionicons name="diamond-outline" size={28} color="#fff" />
             </View>
           </View>
           <View className="flex-col mt-4">
             <Text className="text-stone-50 text-2xl mb-1 font-bold tracking-wider">
               Subscription Plans
             </Text>
-            <Text className="text-stone-300 text-sm leading-6">
+            <Text className="text-sky-50 text-sm leading-6">
               Unlock full access to ApnaStone{"\n"}marketplace features
             </Text>
             
           </View>
         </View>
-      </View>
+      </LinearGradient>
 
       {/* ── Active Plan Banner ── */}
       {activePlan && (
@@ -348,12 +355,12 @@ const handleSubscribe = async () => {
 {history.length > 0 && (
   <View className="px-5 pt-12 pb-12">
     <View className="flex-row items-center gap-3 mb-4">
-      <View className="w-1.5 h-7 rounded-full bg-amber-400" />
+      <View className="w-1.5 h-7 rounded-full bg-[#3f8fb0]" />
       <View>
-        <Text className="text-[10px] font-extrabold tracking-widest text-amber-500 uppercase">
+        <Text className="text-[10px] font-extrabold tracking-widest text-[#3f8fb0] uppercase">
           Billing
         </Text>
-        <Text className="text-stone-900 text-base font-extrabold leading-tight -mt-0.5">
+        <Text className="text-stone-900 text-base font-extrabold leading-tight mt-0.5">
           Transaction History
         </Text>
       </View>
@@ -368,12 +375,12 @@ const handleSubscribe = async () => {
           <View
             key={txn.id}
             className={`bg-white rounded-3xl border overflow-hidden ${
-              isLatest ? "border-amber-200" : "border-stone-100"
+              isLatest ? "border-sky-200" : "border-stone-100"
             }`}
           >
             {/* Top Badge */}
             {isLatest && (
-              <View className="bg-amber-500 py-1.5 items-center">
+              <View className="bg-[#3f8fb0] py-1.5 items-center">
                 <Text className="text-white text-[10px] font-black tracking-widest uppercase">
                   Latest Transaction
                 </Text>

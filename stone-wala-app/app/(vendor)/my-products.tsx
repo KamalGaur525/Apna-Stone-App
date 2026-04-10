@@ -1,4 +1,5 @@
 import { getMyProducts } from "@/services/vendorService";
+import { LinearGradient } from "expo-linear-gradient";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -74,9 +75,9 @@ const onRefresh = async () => {
         };
       case "pending":
         return {
-          bg: "bg-amber-500",
-          text: "text-stone-50",
-          dot: "bg-amber-300",
+          bg: "bg-amber-400",
+          text: "text-stone-100",
+          dot: "bg-amber-600",
           label: "Pending",
         };
       case "rejected":
@@ -154,72 +155,78 @@ const onRefresh = async () => {
   }
 >
       {/* ── Header ──────────────────────────────────────── */}
-      <View className="bg-stone-950 px-6 pt-14 pb-10">
+      
+ 
+    <LinearGradient
+       colors={["#0f3f5a", "#1f5f7a", "#3f8fb0", "#6bb6d6"]}
+       start={{ x: 0, y: 0 }}
+       end={{ x: 0, y: 1 }}
+       className="px-6 pt-10 pb-8"
+     > 
+  {/* Back Button */}
+  <Pressable
+    onPress={() => router.back()}
+    className="flex-row items-center self-start bg-white/10 border border-white/20 active:bg-white/20 rounded-full px-4 py-2 mb-8 gap-2"
+  >
+    <Text className="text-white text-sm font-bold">←</Text>
+    <Text className="text-white text-sm font-semibold tracking-wide">Back</Text>
+  </Pressable>
 
-        {/* Back Button */}
-       <Pressable
-          onPress={() => router.back()}
-          className="flex-row items-center self-start bg-amber-500/15 border border-amber-500/30 active:bg-stone-700/15 rounded-full px-4 py-2 mb-8 gap-1.5"
-        >
-          <Text className="text-amber-600 text-sm">←</Text>
-          <Text className="text-amber-600 text-sm font-semibold">Back</Text>
-        </Pressable>
+  {/* Title Row */}
+  <View className="flex-row items-center justify-between">
+    <View>
+      <Text className="text-white text-3xl font-bold tracking-tight">
+        My Products
+      </Text>
+      <Text className="text-sky-100 text-sm font-medium mt-1">
+        {products.length} product{products.length !== 1 ? "s" : ""} total
+      </Text>
+    </View>
 
-        {/* Title Row */}
-        <View className="flex-row items-center justify-between">
-          <View>
-            <Text className="text-white text-2xl font-bold tracking-tight">
-              My Products
-            </Text>
-            <Text className="text-stone-400 text-sm font-medium mt-0.5">
-              {products.length} product{products.length !== 1 ? "s" : ""} total
-            </Text>
-          </View>
+    <Pressable
+      onPress={() => router.push("/(vendor)/upload-product")}
+      className="flex-row items-center gap-1.5 bg-white active:bg-sky-50 px-5 py-2.5 rounded-full shadow-sm"
+    >
+      <Text className="text-sky-700 text-sm font-black">+</Text>
+      <Text className="text-sky-700 text-sm font-bold tracking-wide">
+        Add New
+      </Text>
+    </Pressable>
+  </View>
 
-          <Pressable
-            onPress={() => router.push("/(vendor)/upload-product")}
-            className="flex-row items-center gap-1.5 bg-amber-500 active:bg-amber-400 px-4 py-2.5 rounded-full"
-          >
-            <Text className="text-stone-950 text-sm font-black">+</Text>
-            <Text className="text-stone-950 text-xs font-bold tracking-wide">
-              Add New
-            </Text>
-          </Pressable>
-        </View>
-
-        {/* ── Stats Strip ── */}
-        {products.length > 0 && (
-          <View className="flex-row gap-3 mt-6">
-            {/* Live */}
-            <View className="flex-1 bg-stone-900 rounded-2xl px-3 py-3 items-center gap-1">
-              <Text className="text-emerald-400 text-xl font-black">
-                {liveCount}
-              </Text>
-              <Text className="text-stone-500 text-xs font-semibold uppercase tracking-wider">
-                Live
-              </Text>
-            </View>
-            {/* Pending */}
-            <View className="flex-1 bg-stone-900 rounded-2xl px-3 py-3 items-center gap-1">
-              <Text className="text-amber-400 text-xl font-black">
-                {pendingCount}
-              </Text>
-              <Text className="text-stone-500 text-xs font-semibold uppercase tracking-wider">
-                Pending
-              </Text>
-            </View>
-            {/* Rejected */}
-            <View className="flex-1 bg-stone-900 rounded-2xl px-3 py-3 items-center gap-1">
-              <Text className="text-red-400 text-xl font-black">
-                {rejectedCount}
-              </Text>
-              <Text className="text-stone-500 text-xs font-semibold uppercase tracking-wider">
-                Rejected
-              </Text>
-            </View>
-          </View>
-        )}
+  {/* ── Stats Strip ── */}
+  {products.length > 0 && (
+    <View className="flex-row gap-3 mt-8">
+      {/* Live */}
+      <View className="flex-1 bg-white/10 border border-white/10 rounded-2xl px-2 py-3.5 items-center justify-center gap-1">
+        <Text className="text-emerald-300 text-2xl font-black">
+          {liveCount}
+        </Text>
+        <Text className="text-sky-100/80 text-[10px] font-bold uppercase tracking-widest">
+          Live
+        </Text>
       </View>
+      {/* Pending */}
+      <View className="flex-1 bg-white/10 border border-white/10 rounded-2xl px-2 py-3.5 items-center justify-center gap-1">
+        <Text className="text-amber-300 text-2xl font-black">
+          {pendingCount}
+        </Text>
+        <Text className="text-sky-100/80 text-[10px] font-bold uppercase tracking-widest">
+          Pending
+        </Text>
+      </View>
+      {/* Rejected */}
+      <View className="flex-1 bg-white/10 border border-white/10 rounded-2xl px-2 py-3.5 items-center justify-center gap-1">
+        <Text className="text-rose-300 text-2xl font-black">
+          {rejectedCount}
+        </Text>
+        <Text className="text-sky-100/80 text-[10px] font-bold uppercase tracking-widest">
+          Rejected
+        </Text>
+      </View>
+    </View>
+  )}
+</LinearGradient>
 
       <View className="px-4 pt-5 pb-8 gap-3">
 

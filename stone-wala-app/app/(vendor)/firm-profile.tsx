@@ -3,6 +3,7 @@ import { getVendorProfile, updateVendorProfile } from "@/services/vendorService"
 import { getToken } from "@/utils/storage";
 import { Feather } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -301,16 +302,21 @@ export default function FirmProfile() {
       }
     >
       {/* ── Header ─────────────────────────────────────── */}
-      <View className="bg-stone-950 px-6 pt-14 pb-10">
+     <LinearGradient
+          colors={["#0f3f5a", "#1f5f7a", "#3f8fb0", "#6bb6d6"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+          className=" p-6"
+        >
 
         {/* Back Button */}
-        <Pressable
-          onPress={() => router.back()}
-          className="flex-row items-center self-start bg-amber-500/15 border border-amber-500/30 active:bg-stone-700/15 rounded-full px-4 py-2 mb-8 gap-1.5"
-        >
-          <Text className="text-amber-600 text-sm">←</Text>
-          <Text className="text-amber-600 text-sm font-semibold">Back</Text>
-        </Pressable>
+          <Pressable
+    onPress={() => router.back()}
+    className="flex-row items-center self-start bg-white/10 border border-white/20 active:bg-white/20 rounded-full px-4 py-2 mb-8 gap-2"
+  >
+    <Text className="text-white text-sm font-bold">←</Text>
+    <Text className="text-white text-sm font-semibold tracking-wide">Back</Text>
+  </Pressable>
 
         {/* Avatar + Identity */}
         <View className="flex-row items-center gap-4">
@@ -324,7 +330,7 @@ export default function FirmProfile() {
     transform: [{ scale: pressed ? 0.95 : 1 }],
   })}
 > 
-  <View className="p-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 shadow-sm">
+  <View className="p-1.5 rounded-xl bg-sky-500/10 border border-sky-500/20 shadow-sm">
     
     {displayLogoUri ? (
       <Image
@@ -333,18 +339,18 @@ export default function FirmProfile() {
         resizeMode="cover"
       />
     ) : (
-      <View className="w-20 h-20 rounded-2xl bg-amber-500 items-center justify-center">
+      <View className="w-20 h-20 rounded-2xl bg-[#6bb6d6] items-center justify-center">
         <Text className="text-white text-2xl font-bold tracking-widest shadow-sm">
           {initials}
         </Text>
       </View>
     )}
  
-    <View className="absolute -bottom-1.5 -right-1.5 w-8 h-8 rounded-full bg-stone-900 border-[3px] border-amber-500/20 dark:border-stone-950 items-center justify-center shadow-md">
+    <View className="absolute -bottom-1.5 -right-1.5 w-8 h-8 rounded-full bg-white border-[3px] border-sky-500/20  items-center justify-center shadow-md">
       {logoUploading ? (
         <ActivityIndicator size="small" color="#fbbf24" /> 
       ) : (
-        <Feather name="camera" size={13} color="#fbbf24" />
+        <Feather name="camera" size={13} color="#6bb6d6" />
       )}
     </View>
 
@@ -360,21 +366,21 @@ export default function FirmProfile() {
 
             <View className="flex-row items-center gap-2.5 mt-3">
               {/* Tier Badge */}
-              <View className="bg-amber-500/15 border border-amber-500/30 px-3 py-1 rounded-full">
-                <Text className="text-amber-400 text-xs font-bold tracking-widest uppercase">
+              <View className="bg-sky-50 border border-sky-500/30 px-3 py-1 rounded-full">
+                <Text className="text-sky-600 text-xs font-bold tracking-widest uppercase">
                   {tier}
                 </Text>
               </View>
 
-              <View className="bg-amber-500/15 border border-amber-500/30 px-3 py-1 rounded-full">
-                <Text className="text-amber-400 text-xs font-bold tracking-widest uppercase">
+              <View className="bg-sky-50 border border-sky-500/30 px-3 py-1 rounded-full">
+                <Text className="text-sky-600 text-xs font-bold tracking-widest uppercase">
                   +91 {phone}
                 </Text>
               </View>
             </View>
           </View>
         </View>
-      </View>
+      </LinearGradient>
 
       {/* ── Body ───────────────────────────────────────── */}
       <View className="px-4 pt-5 pb-8 gap-4">
@@ -426,8 +432,8 @@ export default function FirmProfile() {
               Firm Type
             </Text>
             <View className="flex-1 items-end">
-              <View className="bg-amber-500/15 border border-amber-500/30 px-3 py-1 rounded-full">
-                <Text className="text-amber-400 text-xs font-bold tracking-widest uppercase">
+              <View className="bg-sky-50 border border-sky-500/30  px-3 py-1 rounded-full">
+                <Text className="text-sky-600 text-xs font-bold tracking-widest uppercase">
                   {tier || "—"}
                 </Text>
               </View>
@@ -600,7 +606,7 @@ export default function FirmProfile() {
           disabled={saving || !hasChanges}
           className={`rounded-2xl py-4 px-5 shadow-sm items-center mt-1 ${
             hasChanges
-              ? "bg-amber-500 active:bg-amber-400"
+              ? "bg-sky-300 active:bg-sky-500"
               : "bg-stone-200"
           }`}
         >

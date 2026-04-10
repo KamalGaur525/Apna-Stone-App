@@ -1,5 +1,6 @@
 import { getAllCategories } from "@/services/categoryService";
 import { Feather, Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -135,21 +136,25 @@ export default function Categories() {
       }
     >
       {/* ── HEADER ── */}
-    
-            <View className="bg-stone-950 px-5 pt-5 pb-3 shadow-sm z-10">
+       <LinearGradient
+              colors={["#0f3f5a", "#1f5f7a", "#3f8fb0", "#6bb6d6"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 0, y: 1 }}
+              className="px-5 pt-5 pb-3 shadow-sm z-10"
+            >
        
-     <View className="flex-row items-start justify-between">
+     <View className="flex-row items-center justify-between">
   {/* Left — Title */}
   <View className="flex-row items-center gap-3">
-    <View className="w-1.5 h-10 rounded-full bg-amber-400" />
+    <View className="w-1.5 h-10 rounded-full bg-[#5c99b3]" />
     <View className="gap-0.5">
-      <Text className="text-amber-500 text-[10px] font-extrabold tracking-[3px] uppercase">
+      <Text className="text-[#a0d3e6] text-[10px] font-extrabold tracking-[3px] uppercase">
          Browse
       </Text>
       <Text className="text-white text-2xl font-extrabold tracking-tight leading-tight">
         Categories
       </Text>
-      <Text className="text-stone-500 text-xs font-medium">
+      <Text className="text-[#f2f3f8] text-xs font-medium">
         {categories.length} categories available
       </Text>
     </View>
@@ -157,97 +162,113 @@ export default function Categories() {
 
   {/* Right — Back button */}
   <Pressable
-    onPress={() => router.back()}
-    className="flex-row items-center bg-amber-500/15 border border-amber-500/30 active:bg-stone-700/15 rounded-full px-4 py-2 gap-1.5"
-  >
-    <Text className="text-amber-600 text-sm">←</Text>
-    <Text className="text-amber-600 text-sm font-semibold">Back</Text>
-  </Pressable>
+      onPress={() => router.back()}
+      className="flex-row items-center justify-center bg-white/10 border border-white/20 active:bg-white/20 rounded-full px-4 py-2 gap-2"
+    >
+      <Feather name="arrow-left" size={13} color="#ffffff" />
+      <Text className="text-white text-sm font-semibold tracking-wide">
+        Back
+      </Text>
+    </Pressable>
 </View>
-      </View>
+</LinearGradient>
+     
 
       {/* ── GRID ── */}
       <View className="px-4 pt-5 pb-10">
-        {categories.length === 0 ? (
-          <View className="bg-white rounded-3xl p-12 border border-stone-100 items-center gap-3 shadow-sm">
-            <View className="w-16 h-16 rounded-2xl bg-stone-50 border border-stone-100 items-center justify-center">
-              <Ionicons name="grid-outline" size={28} color="#d6d3d1" />
-            </View>
-            <View className="items-center gap-1">
-              <Text className="text-stone-700 font-bold text-sm">
-                No Categories
-              </Text>
-              <Text className="text-stone-400 text-xs text-center">
-                Categories will appear once added.
-              </Text>
-            </View>
-          </View>
-        ) : (
-          <View className="flex-row flex-wrap justify-between gap-y-4">
-            {categories.map((cat) => {
-              const p = getPalette(cat.id);
-              const initials = getInitials(cat.name);
-              return (
-                <Pressable
-                  key={cat.id}
-                  onPress={() =>
-                    router.push({
-                      pathname: "/(guest)/category-detail",
-                      params: { id: String(cat.id), name: cat.name },
-                    })
-                  }
-                  className="w-[48%] bg-white rounded-3xl border border-stone-100/80 shadow-md overflow-hidden active:opacity-80"
-                >
-                  {/* Color tile with initials */}
-                  <View
-                    className="h-32 w-full items-center justify-center"
-                    style={{ backgroundColor: p.tileBg }}
-                  >
-                    <View
-                      className="w-16 h-16 rounded-2xl items-center justify-center"
-                      style={{ backgroundColor: p.iconBg }}
-                    >
-                      <Text
-                        className="text-2xl font-black"
-                        style={{ color: p.iconColor }}
-                      >
-                        {initials}
-                      </Text>
-                    </View>
-                  </View>
-
-                  {/* Accent bar */}
-                  <View
-                    className="h-0.5 w-full opacity-60"
-                    style={{ backgroundColor: p.accent }}
-                  />
-
-                  {/* Info */}
-                  <View className="px-4 pt-3 pb-4 gap-2">
-                    <Text
-                      className="text-stone-900 font-extrabold text-sm leading-snug"
-                      numberOfLines={1}
-                    >
-                      {cat.name}
-                    </Text>
-                    <View className="flex-row items-center justify-between">
-                      <Text className="text-stone-400 text-[10px] font-semibold">
-                        Browse collection
-                      </Text>
-                      <View className="flex-row items-center gap-0.5">
-                        <Text className="text-amber-600 text-[10px] font-extrabold">
-                          Explore
-                        </Text>
-                        <Feather name="arrow-right" size={10} color="#d97706" />
-                      </View>
-                    </View>
-                  </View>
-                </Pressable>
-              );
-            })}
-          </View>
-        )}
+  {categories.length === 0 ? (
+    
+    <View className="bg-[#f0f9ff] rounded-3xl p-12 border border-[#dbeafe] items-center gap-3 shadow-sm">
+      
+      <View className="w-16 h-16 rounded-2xl bg-[#e0f2fe] border border-[#dbeafe] items-center justify-center">
+        <Ionicons name="grid-outline" size={28} color="#a0d3e6" />
       </View>
+
+      <View className="items-center gap-1">
+        <Text className="text-[#1f5f7a] font-bold text-sm">
+          No Categories
+        </Text>
+        <Text className="text-[#6b9fb8] text-xs text-center">
+          Categories will appear once added.
+        </Text>
+      </View>
+    </View>
+
+  ) : (
+    
+    <View className="flex-row flex-wrap justify-between gap-y-4">
+      {categories.map((cat) => {
+        const p = getPalette(cat.id);
+        const initials = getInitials(cat.name);
+
+        return (
+          <Pressable
+            key={cat.id}
+            onPress={() =>
+              router.push({
+                pathname: "/(guest)/category-detail",
+                params: { id: String(cat.id), name: cat.name },
+              })
+            }
+            className="w-[48%] bg-[#f0f9ff] rounded-3xl border border-[#dbeafe] shadow-sm overflow-hidden active:opacity-80"
+          >
+            
+            {/* Color tile (kept dynamic palette logic) */}
+            <View
+              className="h-32 w-full items-center justify-center"
+              style={{ backgroundColor: p.tileBg }}
+            >
+              <View
+                className="w-16 h-16 rounded-2xl items-center justify-center"
+                style={{ backgroundColor: p.iconBg }}
+              >
+                <Text
+                  className="text-2xl font-black"
+                  style={{ color: p.iconColor }}
+                >
+                  {initials}
+                </Text>
+              </View>
+            </View>
+
+            {/* Accent bar (unchanged logic) */}
+            <View
+              className="h-0.5 w-full opacity-60"
+              style={{ backgroundColor: p.accent }}
+            />
+
+            {/* Info */}
+            <View className="px-4 pt-3 pb-4 gap-2">
+              
+              <Text
+                className="text-[#0f3f5a] font-extrabold text-sm leading-snug"
+                numberOfLines={1}
+              >
+                {cat.name}
+              </Text>
+
+              <View className="flex-row items-center justify-between">
+                
+                <Text className="text-[#6b9fb8] text-[10px] font-semibold">
+                  Browse collection
+                </Text>
+
+                <View className="flex-row items-center gap-0.5">
+                  <Text className="text-[#1f5f7a] text-[10px] font-extrabold">
+                    Explore
+                  </Text>
+                  <Feather name="arrow-right" size={10} color="#3f8fb0" />
+                </View>
+
+              </View>
+            </View>
+
+          </Pressable>
+        );
+      })}
+    </View>
+  )}
+</View>
     </ScrollView>
   );
 }

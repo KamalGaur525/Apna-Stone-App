@@ -1,4 +1,4 @@
-const BASE_URL = 'http://app.shreekarnipalace.com/api';
+const BASE_URL = 'https://apnastone.com/api';
 
 export const API = {
   // ── Auth (Fixed: Removed /auth as your routes are directly under /admin) ──
@@ -41,6 +41,10 @@ export const API = {
   // ── Payments (Fixed: Sync with your backend params) ──
   PAYMENTS_PENDING:      `${BASE_URL}/admin/payments/pending`,
   GUEST_PAYMENT_APPROVE: (id: number) => `${BASE_URL}/admin/guests/${id}/approve`,
+  GUEST_BLOCK: (id: number) => `https://apnastone.com/api/admin/guests/${id}/block`,
+GUEST_UNBLOCK: (id: number) => `https://apnastone.com/api/admin/guests/${id}/unblock`,
+VENDOR_BLOCK: (id: number) => `https://apnastone.com/api/admin/vendors/${id}/block`,
+VENDOR_UNBLOCK: (id: number) => `https://apnastone.com/api/admin/vendors/${id}/unblock`,
   // api.ts mein yeh dono change karo
 PRODUCT_DELETE: (id: number) => `${BASE_URL}/admin/products/${id}`,
 PRODUCT_APPROVE: (id: number) => `${BASE_URL}/admin/products/${id}/status`,  // <-- /approve nahi, /status

@@ -2,7 +2,7 @@ import Constants from "expo-constants";
 
  
 const BASE_URL =
-  Constants.expoConfig?.extra?.apiUrl ?? "http://app.shreekarnipalace.com/api";
+  Constants.expoConfig?.extra?.apiUrl ?? "https://apnastone.com/api";
 export const API_CONFIG = {
   BASE_URL,
   TIMEOUT: 10000,

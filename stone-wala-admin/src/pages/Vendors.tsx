@@ -6,8 +6,7 @@ import {
 } from 'lucide-react';
 import { useVendors } from '../hooks/useVendors';
 import Badge from '../components/Badge';
-import Modal from '../components/Modal';
-import type { Tier } from '../types';
+import Modal from '../components/Modal'; 
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

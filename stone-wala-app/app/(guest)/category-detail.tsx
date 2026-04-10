@@ -1,6 +1,7 @@
 import { getCategoryProducts } from "@/services/guestService";
 import { useGuestStore } from "@/store/guestStore";
-import { Ionicons } from "@expo/vector-icons";
+import { Feather, Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -210,8 +211,14 @@ const [products, setProducts] = useState<any[]>([]);
       scrollEventThrottle={400}
     >
       {/* ── HEADER ── */}
-      <View className="bg-stone-950 px-5 pt-6 pb-4">
-        <View className="flex-row items-start justify-between">
+     
+            <LinearGradient
+                      colors={["#0f3f5a", "#1f5f7a", "#3f8fb0", "#6bb6d6"]}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 0, y: 1 }}
+                      className="px-5 pt-6 pb-4 shadow-sm z-10"
+                    >
+        <View className="flex-row items-center justify-between">
           <View className="flex-row items-center gap-4 flex-1">
             <View
               className="w-16 h-16 rounded-2xl items-center justify-center"
@@ -233,23 +240,25 @@ const [products, setProducts] = useState<any[]>([]);
                 {name}
               </Text>
               <View className="flex-row items-center gap-1.5">
-                <View className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                <Text className="text-stone-500 text-xs font-medium">
+                <View className="w-1.5 h-1.5 rounded-full bg-sky-800" />
+                <Text className="text-sky-50 text-xs font-medium">
                   {pagination?.total ?? 0} products available
                 </Text>
               </View>
             </View>
           </View>
 
-          <Pressable
-            onPress={() => router.back()}
-            className="flex-row items-center bg-amber-500/15 border border-amber-500/30 active:bg-stone-700/15 rounded-full px-4 py-2 gap-1.5"
-          >
-            <Text className="text-amber-600 text-sm">←</Text>
-            <Text className="text-amber-600 text-sm font-semibold">Back</Text>
-          </Pressable>
+         <Pressable
+      onPress={() => router.back()}
+      className="flex-row items-center justify-center bg-white/10 border border-white/20 active:bg-white/20 rounded-full px-4 py-2 gap-2"
+    >
+      <Feather name="arrow-left" size={13} color="#ffffff" />
+      <Text className="text-white text-sm font-semibold tracking-wide">
+        Back
+      </Text>
+    </Pressable>
         </View>
-      </View>
+     </LinearGradient>
 
       {/* ── THIN ACCENT DIVIDER ── */}
       <View className="h-px bg-stone-200" />
@@ -396,7 +405,7 @@ const [products, setProducts] = useState<any[]>([]);
     email: product?.email || "",
   });
   router.push("/(guest)/firm-detail");
-}} className="flex-row items-center gap-1 bg-amber-500 px-3 py-1.5 rounded-full">
+}} className="flex-row items-center gap-1 bg-sky-500 px-3 py-1.5 rounded-full">
                       <Text className="text-white text-xs font-bold">
                         View Firm
                       </Text>

@@ -1,5 +1,6 @@
 import { getMarketplaceProducts } from "@/services/guestService";
 import { Feather, Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
@@ -90,65 +91,81 @@ export default function AllProducts() {
     const imageUrl = item.image_url || null;
 
     return (
-      <Pressable
-        onPress={() => router.push(`/(guest)/product/${item.id}` as any)}
-        className="flex-1 m-2 bg-white rounded-2xl border border-stone-200/60 shadow-sm overflow-hidden"
-        style={({ pressed }) => ({
-          opacity: pressed ? 0.9 : 1,
-          transform: [{ scale: pressed ? 0.97 : 1 }], // Safe Reanimated scaling
-        })}
+     <Pressable
+  onPress={() => router.push(`/(guest)/product/${item.id}` as any)}
+  className="flex-1 m-2 bg-[#f0f9ff] rounded-2xl border border-[#dbeafe] shadow-sm overflow-hidden"
+  style={({ pressed }) => ({
+    opacity: pressed ? 0.9 : 1,
+    transform: [{ scale: pressed ? 0.97 : 1 }],
+  })}
+>
+  {/* ── Image Block ── */}
+  <View className="relative w-full h-44">
+    {imageUrl ? (
+      <Image
+        source={{ uri: imageUrl }}
+        className="w-full h-full bg-[#e0f2fe]"
+        resizeMode="cover"
+      />
+    ) : (
+      <View className="w-full h-full bg-[#e0f2fe] items-center justify-center">
+        <Ionicons name="image-outline" size={32} color="#a0d3e6" />
+      </View>
+    )}
+
+    {/* Category Chip */}
+    <View className="absolute top-2 right-2 bg-white/90 border border-[#dbeafe] px-2.5 py-1 rounded-full shadow-sm backdrop-blur-md">
+      <Text
+        className="text-[#1f5f7a] text-[10px] font-extrabold tracking-wide uppercase"
+        numberOfLines={1}
       >
-        {/* ── Image Block ── */}
-        <View className="relative w-full h-44">
-          {imageUrl ? (
-            <Image
-              source={{ uri: imageUrl }}
-              className="w-full h-full bg-stone-100"
-              resizeMode="cover"
-            />
-          ) : (
-            <View className="w-full h-full bg-stone-100 items-center justify-center">
-              <Ionicons name="image-outline" size={32} color="#d6d3d1" />
-            </View>
-          )}
+        {item.category_name}
+      </Text>
+    </View>
 
-          {/* Floating category chip (Matches Home.tsx) */}
-          <View className="absolute top-2 right-2 bg-amber-50/95 border border-amber-100 px-2.5 py-1 rounded-full shadow-sm backdrop-blur-md">
-            <Text className="text-amber-600 text-[10px] font-extrabold tracking-wide uppercase" numberOfLines={1}>
-              {item.category_name}
-            </Text>
-          </View>
-           {/* Floating Arrow Badge (Overlapping the image bottom edge) */}
-<View className="absolute -bottom-7 right-2   items-center justify-center z-10">
-  <View className="-rotate-60 items-center justify-center">
-  <Feather name="arrow-up-right" size={12} color="#fbbf24" />
-</View>
-</View>
-        </View>
+    {/* Floating Arrow */}
+    <View className="absolute -bottom-7 right-2 items-center justify-center z-10">
+      <View className="-rotate-60 items-center justify-center">
+        <Feather name="arrow-up-right" size={12} color="#5c99b3" />
+      </View>
+    </View>
+  </View>
 
-        {/* ── Info Block ── */}
-        <View className="px-3.5 pt-3 pb-4 gap-1.5">
-          <Text className="text-stone-900 font-extrabold text-sm leading-snug" numberOfLines={1}>
-            {item.name}
-          </Text>
-          
-          <View className="gap-1 mt-0.5">
-            <View className="flex-row items-center gap-1.5">
-              <View className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-              <Text className="text-stone-500 text-xs font-semibold flex-1" numberOfLines={1}>
-                {item.vendor_name}
-              </Text>
-            </View>
-            
-            <View className="flex-row items-center gap-1.5">
-              <View className="w-1.5 h-1.5 rounded-full bg-stone-300" />
-              <Text className="text-stone-400 text-[10px] font-medium flex-1" numberOfLines={1}>
-                {item.vendor_location || "Location unavailable"}
-              </Text>
-            </View>
-          </View>
-        </View>
-      </Pressable>
+  {/* ── Info Block ── */}
+  <View className="px-3.5 pt-3 pb-4 gap-1.5">
+    
+    <Text
+      className="text-[#0f3f5a] font-extrabold text-sm leading-snug"
+      numberOfLines={1}
+    >
+      {item.name}
+    </Text>
+    
+    <View className="gap-1 mt-0.5">
+      
+      <View className="flex-row items-center gap-1.5">
+        <View className="w-1.5 h-1.5 rounded-full bg-[#5c99b3]" />
+        <Text
+          className="text-[#6b9fb8] text-xs font-semibold flex-1"
+          numberOfLines={1}
+        >
+          {item.vendor_name}
+        </Text>
+      </View>
+      
+      <View className="flex-row items-center gap-1.5">
+        <View className="w-1.5 h-1.5 rounded-full bg-[#a0d3e6]" />
+        <Text
+          className="text-[#6b9fb8] text-[10px] font-medium flex-1"
+          numberOfLines={1}
+        >
+          {item.vendor_location || "Location unavailable"}
+        </Text>
+      </View>
+
+    </View>
+  </View>
+</Pressable>
     );
   };
 
@@ -156,22 +173,30 @@ export default function AllProducts() {
     <View className="flex-1 bg-stone-50">
      
      {/* ── Custom Premium Header ── */}
-<View className="bg-stone-950 px-5 pt-5 pb-3 shadow-sm z-10">
-  <View className="flex-row items-start justify-between ">
+<LinearGradient
+  colors={["#0f3f5a", "#1f5f7a", "#3f8fb0", "#6bb6d6"]}
+  start={{ x: 0, y: 0 }}
+  end={{ x: 0, y: 1 }}
+  className="px-5 pt-5 pb-3 shadow-sm z-10"
+>
+  <View className="flex-row items-center justify-between">
     
     {/* Left — Title Stack */}
     <View className="flex-row items-center gap-3">
+      
       {/* Accent Bar */}
-      <View className="w-1.5 h-10 rounded-full bg-amber-400" />
+      <View className="w-1.5 h-10 rounded-full bg-[#5c99b3]" />
       
       <View className="gap-0.5">
-        <Text className="text-amber-500 text-[10px] font-extrabold tracking-[3px] uppercase">
+        <Text className="text-[#a0d3e6] text-[10px] font-extrabold tracking-[3px] uppercase">
           Explore
         </Text>
+
         <Text className="text-white text-2xl font-extrabold tracking-tight leading-tight">
           Marketplace
         </Text>
-        <Text className="text-stone-500 text-xs font-medium">
+
+        <Text className="text-[#f2f3f8] text-xs font-medium">
           Discover premium stones
         </Text>
       </View>
@@ -180,14 +205,16 @@ export default function AllProducts() {
     {/* Right — Back button */}
     <Pressable
       onPress={() => router.back()}
-      className="flex-row items-center bg-amber-500/15 border border-amber-500/30 active:bg-stone-700/15 rounded-full px-4 py-2 gap-1.5"
+      className="flex-row items-center justify-center bg-white/10 border border-white/20 active:bg-white/20 rounded-full px-4 py-2 gap-2"
     >
-      <Text className="text-amber-600 text-sm">←</Text>
-      <Text className="text-amber-600 text-sm font-semibold">Back</Text>
+      <Feather name="arrow-left" size={13} color="#ffffff" />
+      <Text className="text-white text-sm font-semibold tracking-wide">
+        Back
+      </Text>
     </Pressable>
-    
+
   </View>
-</View>
+</LinearGradient>
 
       {/* ── Main Content Area ── */}
       {loading ? (

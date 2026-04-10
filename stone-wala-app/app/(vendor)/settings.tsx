@@ -2,6 +2,7 @@ import { getVendorProfile } from "@/services/vendorService";
 import { useAuthStore } from "@/store/authStore";
 import { useVendorStore } from "@/store/vendorStore";
 import { Feather, Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -71,22 +72,28 @@ export default function Settings() {
       showsVerticalScrollIndicator={false}
     >
       {/* ── Header — Black ── */}
-      <View className="bg-stone-900 px-6 pt-11 pb-7 flex-row items-center justify-between">
+     
+         <LinearGradient
+               colors={["#0f3f5a", "#1f5f7a", "#3f8fb0", "#6bb6d6"]}
+               start={{ x: 0, y: 0 }}
+               end={{ x: 0, y: 1 }}
+               className=" px-6 pt-11 pb-7 flex-row items-center justify-between"
+             >
   <View className="flex-row items-center gap-2.5">
-    <View className="w-1.5 h-6 rounded-full bg-amber-400" />
+    <View className="w-1.5 h-6 rounded-full bg-white/75" />
     <Text className="text-white text-2xl font-bold tracking-tight">
       Settings
     </Text>
   </View>
 
-  <Pressable
+   <Pressable
     onPress={() => router.back()}
-    className="flex-row items-center bg-amber-500/15 border border-amber-500/30 active:bg-stone-700/15 rounded-full px-4 py-2 gap-1.5"
+    className="flex-row items-center self-start bg-white/10 border border-white/20 active:bg-white/20 rounded-full px-4 py-2  gap-2"
   >
-    <Text className="text-amber-600 text-sm">←</Text>
-    <Text className="text-amber-600 text-sm font-semibold">Back</Text>
+     <Ionicons name="arrow-back" size={16} color="white" />
+    <Text className="text-white text-sm font-semibold tracking-wide">Back</Text>
   </Pressable>
-</View>
+</LinearGradient>
 
       <View className="px-5 gap-4 pb-10 pt-5">
 
@@ -96,7 +103,7 @@ export default function Settings() {
             <ActivityIndicator color="#f59e0b" />
           ) : (
             <View className="flex-row items-center gap-4">
-              <View className="w-14 h-14 rounded-2xl bg-amber-500 items-center justify-center">
+              <View className="w-14 h-14 rounded-2xl bg-[#3f8fb0] items-center justify-center">
                 <Text className="text-white text-xl font-extrabold">{initials}</Text>
               </View>
 
@@ -107,8 +114,8 @@ export default function Settings() {
                 <Text className="text-stone-400 text-sm">
                   +91 {profile?.phone || "—"}
                 </Text>
-                <View className="self-start bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full mt-0.5">
-                  <Text className="text-amber-600 text-xs font-bold">
+                <View className="self-start bg-sky-50 border border-sky-200 px-2.5 py-0.5 rounded-full mt-0.5">
+                  <Text className="text-sky-600 text-xs font-bold">
                     {profile?.tier || "—"}
                   </Text>
                 </View>
@@ -127,7 +134,7 @@ export default function Settings() {
         {/* ── Subscription Card ── */}
         <View className="bg-white rounded-3xl border border-stone-100 shadow-sm overflow-hidden">
           <View className="px-5 pt-5 pb-4 flex-row items-center gap-2.5">
-            <View className="w-1.5 h-5 rounded-full bg-amber-400" />
+            <View className="w-1.5 h-5 rounded-full bg-[#3f8fb0]" />
             <Text className="text-stone-400 text-xs font-bold tracking-widest uppercase">
               Subscription
             </Text>
@@ -153,7 +160,7 @@ export default function Settings() {
 
             <Pressable
               onPress={() => router.push("/(vendor)/subscription")}
-              className="bg-amber-500 active:bg-amber-400 px-3 py-1.5 rounded-xl"
+              className="bg-[#3f8fb0] active:bg-[#1f5f7a] px-3 py-1.5 rounded-xl"
             >
               <Text className="text-white text-xs font-bold">
                 {subscription.isActive ? "Manage" : "Subscribe"}
@@ -165,7 +172,7 @@ export default function Settings() {
         {/* ── Account Section ── */}
         <View className="bg-white rounded-3xl border border-stone-100 shadow-sm overflow-hidden">
           <View className="px-5 pt-5 pb-4 flex-row items-center gap-2.5">
-            <View className="w-1.5 h-5 rounded-full bg-amber-400" />
+            <View className="w-1.5 h-5 rounded-full bg-[#3f8fb0]" />
             <Text className="text-stone-400 text-xs font-bold tracking-widest uppercase">
               Account
             </Text>
@@ -204,7 +211,7 @@ export default function Settings() {
         {/* ── Support Section ── */}
         <View className="bg-white rounded-3xl border border-stone-100 shadow-sm overflow-hidden">
           <View className="px-5 pt-5 pb-4 flex-row items-center gap-2.5">
-            <View className="w-1.5 h-5 rounded-full bg-amber-400" />
+            <View className="w-1.5 h-5 rounded-full bg-[#3f8fb0]" />
             <Text className="text-stone-400 text-xs font-bold tracking-widest uppercase">
               Support
             </Text>
@@ -258,7 +265,7 @@ export default function Settings() {
         {/* ── App Info ── */}
         <View className="bg-white rounded-3xl border border-stone-100 shadow-sm overflow-hidden">
           <View className="px-5 pt-5 pb-4 flex-row items-center gap-2.5">
-            <View className="w-1.5 h-5 rounded-full bg-amber-400" />
+            <View className="w-1.5 h-5 rounded-full bg-[#3f8fb0]" />
             <Text className="text-stone-400 text-xs font-bold tracking-widest uppercase">
               App
             </Text>

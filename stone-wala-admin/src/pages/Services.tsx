@@ -3,7 +3,7 @@ import type { ChangeEvent } from 'react';
 import toast from 'react-hot-toast';
 import {
   Briefcase, Plus, Edit2, Trash2, Loader2, RefreshCcw, AlertCircle,
-  Phone, Image as ImageIcon, X, Search, ChevronLeft, ChevronRight, Layers
+  Phone, Image as ImageIcon,  Search, ChevronLeft, ChevronRight, Layers
 } from 'lucide-react';
 import Modal from '../components/Modal';
 import { useServices, type ServiceProvider } from '../hooks/useServices';
@@ -95,7 +95,7 @@ function Pagination({
 export default function Services() {
   const {
     types, groupedProviders, isLoading, error, refetch,
-    addServiceType, deleteServiceType, addProvider, updateProvider, deleteProvider, isProcessing,
+    addServiceType, deleteServiceType, addProvider, updateProvider, deleteProvider
   } = useServices();
 
   const [modalMode, setModalMode] = useState<ModalMode>(null);

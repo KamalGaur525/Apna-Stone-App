@@ -1,4 +1,5 @@
 import { deleteProduct, getProductById } from "@/services/vendorService";
+import { LinearGradient } from "expo-linear-gradient";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -103,28 +104,28 @@ export default function ProductDetail() {
     switch (status) {
       case "approved":
         return {
-          bg: "bg-emerald-500/15 border border-emerald-500/30",
+          bg: "bg-white border border-emerald-500/30",
           text: "text-emerald-400",
           dot: "bg-emerald-400",
           label: "Live",
         };
       case "pending":
         return {
-          bg: "bg-amber-500/15 border border-amber-500/30",
+          bg: "bg-white border border-amber-500/30",
           text: "text-amber-400",
           dot: "bg-amber-400",
           label: "Pending",
         };
       case "rejected":
         return {
-          bg: "bg-red-500/15 border border-red-500/30",
+          bg: "bg-white border border-red-500/30",
           text: "text-red-400",
           dot: "bg-red-400",
           label: "Rejected",
         };
       default:
         return {
-          bg: "bg-stone-500/15 border border-stone-500/30",
+          bg: "bg-white border border-stone-500/30",
           text: "text-stone-400",
           dot: "bg-stone-500",
           label: status,
@@ -209,15 +210,20 @@ export default function ProductDetail() {
       }
     >
       {/* ── Header ── */}
-      <View className="bg-stone-950 px-6 pt-14 pb-8">
+      <LinearGradient
+           colors={["#0f3f5a", "#1f5f7a", "#3f8fb0", "#6bb6d6"]}
+           start={{ x: 0, y: 0 }}
+           end={{ x: 0, y: 1 }}
+           className="p-6 "
+         >
 
-        <Pressable
-          onPress={() => router.back()}
-          className="flex-row items-center self-start bg-amber-500/15 border border-amber-500/30 active:bg-stone-700/15 rounded-full px-4 py-2 mb-8 gap-1.5"
-        >
-          <Text className="text-amber-600 text-sm">←</Text>
-          <Text className="text-amber-600 text-sm font-semibold">Back</Text>
-        </Pressable>
+         <Pressable
+    onPress={() => router.back()}
+    className="flex-row items-center self-start bg-white/10 border border-white/20 active:bg-white/20 rounded-full px-4 py-2 mb-8 gap-2"
+  >
+    <Text className="text-white text-sm font-bold">←</Text>
+    <Text className="text-white text-sm font-semibold tracking-wide">Back</Text>
+  </Pressable>
 
         <View className="flex-row items-start justify-between gap-4">
           <View className="flex-1">
@@ -227,7 +233,7 @@ export default function ProductDetail() {
             >
               {product.name}
             </Text>
-            <Text className="text-stone-400 text-sm font-medium mt-2">
+            <Text className="text-sky-50 text-sm font-medium mt-2">
               Added{" "}
               {new Date(product.created_at).toLocaleDateString("en-IN", {
                 day: "numeric",
@@ -244,7 +250,7 @@ export default function ProductDetail() {
             </Text>
           </View>
         </View>
-      </View>
+      </LinearGradient>
 
       <View className="px-4 pt-5 pb-8 gap-4">
 
@@ -265,7 +271,39 @@ export default function ProductDetail() {
             <Text className="text-stone-400 text-sm font-medium">No image uploaded</Text>
           </View>
         )}
-
+ 
+{product.video_url && (
+  <View className="bg-white rounded-3xl border border-stone-200/60 shadow-sm overflow-hidden">
+    <View className="px-5 pt-5 pb-4 flex-row items-center gap-2.5">
+      <View className="w-1.5 h-5 rounded-full bg-blue-400" />
+      <Text className="text-stone-400 text-xs font-bold tracking-widest uppercase">
+        Product Video
+      </Text>
+    </View>
+    <View className="h-px bg-stone-100 mx-5 mb-2" />
+    <View style={{ height: 220, marginHorizontal: 16, marginBottom: 16, borderRadius: 16, overflow: "hidden" }}>
+      <WebView
+        source={{
+          html: `
+            <html>
+              <body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;height:100vh;">
+                <video
+                  src="${product.video_url}"
+                  controls
+                  style="width:100%;max-height:100%;"
+                  playsinline
+                />
+              </body>
+            </html>
+          `,
+        }}
+        allowsInlineMediaPlayback={true}
+        mediaPlaybackRequiresUserAction={false}
+        style={{ flex: 1, backgroundColor: "#000" }}
+      />
+    </View>
+  </View>
+)}
         {/* ── Rejection Banner ── */}
         {product.status === "rejected" && (
           <View className="bg-red-50 rounded-3xl border border-red-100 overflow-hidden">
@@ -291,7 +329,7 @@ export default function ProductDetail() {
         <View className="bg-white rounded-3xl border border-stone-200/60 shadow-sm overflow-hidden">
 
           <View className="px-5 pt-5 pb-4 flex-row items-center gap-2.5">
-            <View className="w-1.5 h-5 rounded-full bg-amber-400" />
+            <View className="w-1.5 h-5 rounded-full bg-[#6bb6d6]" />
             <Text className="text-stone-400 text-xs font-bold tracking-widest uppercase">
               Product Info
             </Text>
@@ -310,8 +348,8 @@ export default function ProductDetail() {
           <View className="h-px bg-stone-100 mx-5" />
           <View className="flex-row items-center justify-between px-5 py-4">
             <Text className="text-stone-500 text-sm font-semibold">Date Added</Text>
-            <View className="bg-amber-50 px-3 border border-amber-100 py-1 rounded-full">
-              <Text className="text-amber-700 text-xs font-bold">
+            <View className="bg-sky-50 px-3 border border-sky-100 py-1 rounded-full">
+              <Text className="text-sky-600 text-xs font-bold">
                 {new Date(product.created_at).toLocaleDateString("en-IN", {
                   day: "numeric",
                   month: "short",
@@ -325,8 +363,8 @@ export default function ProductDetail() {
           <View className="h-px bg-stone-100 mx-5" />
           <View className="flex-row items-center justify-between px-5 py-4">
             <Text className="text-stone-500 text-sm font-semibold">Category</Text>
-            <View className="bg-amber-50 border border-amber-100 px-3 py-1 rounded-full">
-              <Text className="text-amber-700 text-xs font-bold">
+            <View className="bg-sky-50 border border-sky-100 px-3 py-1 rounded-full">
+              <Text className="text-sky-600 text-xs font-bold">
                 {product.category_name}
               </Text>
             </View>

@@ -101,7 +101,8 @@ export const getProductDetails = async (req: AuthRequest, res: Response): Promis
 
     const query = `
       SELECT 
-        p.id, p.name, p.description, p.image_url, p.video_url, p.created_at,
+        p.id, p.name, p.description, p.image_url, p.video_url, p.created_at,   p.sub_category,
+  p.third_category,
         v.id as vendor_id, v.firm_name, v.location, v.whatsapp, v.email, v.about, v.logo_url,
         u.phone as vendor_phone,
         c.name as category_name
@@ -207,9 +208,9 @@ export const getMyProducts = async (req: AuthRequest, res: Response): Promise<an
     const userId = req.user?.id;
     if (!userId) return res.status(401).json({ error: "Unauthorized" });
 
-    const page = Math.max(1, parseInt(req.query.page as string) || 1);
-    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 10));
-    const offset = (page - 1) * limit;
+    // const page = Math.max(1, parseInt(req.query.page as string) || 1);
+    // const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 10));
+    // const offset = (page - 1) * limit;
 
     const [vendor]: any = await pool.query("SELECT id FROM vendors WHERE user_id = ?", [userId]);
     if (vendor.length === 0) return res.status(404).json({ error: "Vendor not found" });
@@ -221,8 +222,8 @@ export const getMyProducts = async (req: AuthRequest, res: Response): Promise<an
        LEFT JOIN categories c ON p.category_id = c.id
        WHERE p.vendor_id = ? AND p.is_active = true
        ORDER BY p.created_at DESC
-       LIMIT ? OFFSET ?`,
-      [vendorId, limit, offset]
+       `,
+      [vendorId]  /*, limit, offset*/
     );
 
     const [total]: any = await pool.query(
@@ -233,7 +234,8 @@ export const getMyProducts = async (req: AuthRequest, res: Response): Promise<an
     return res.status(200).json({
       success: true,
       data: products,
-      pagination: { total: total[0].count, page, limit }
+      // pagination: { total: total[0].count, page, limit }
+      total: total[0].count
     });
   } catch (error) {
     console.error("Error in getMyProducts:", error);

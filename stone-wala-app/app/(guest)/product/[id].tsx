@@ -73,6 +73,7 @@ export default function ProductDetail() {
       </View>
     );
   }
+  
 
   const baseUrl = API_CONFIG.BASE_URL.replace("/api", "");
  const imageUrl = product?.image_url || null;
@@ -189,22 +190,96 @@ const videoUrl: string | null = product?.video_url || null;
   <View className="bg-[#f0f9ff] rounded-t-3xl -mt-5 px-5 pt-7">
 
     {/* TITLE */}
-    <View className="mb-7">
-      <View className="flex-row items-center gap-2 mb-3 flex-wrap">
-        {product?.location && (
-          <View className="flex-row items-center bg-[#e0f2fe] border border-[#dbeafe] px-3 py-1 rounded-full gap-1">
-            <Ionicons name="layers" size={9} color="#5c99b3" />
-            <Text className="text-[#1f5f7a] text-[9px] font-semibold tracking-wide">
-              {product?.category_name || "General"}
-            </Text>
-          </View>
-        )}
-      </View>
+<View className="mb-7">
 
-      <Text className="text-[#0f3f5a] text-3xl font-black leading-tight" numberOfLines={3}>
-        {product?.name}
-      </Text>
-    </View>
+ 
+  {/* <View className="flex-row items-center gap-2 mb-3 flex-wrap">
+    {product?.location && (
+      <View className="flex-row items-center bg-[#e0f2fe] border border-[#dbeafe] px-3 py-1 rounded-full gap-1">
+        <Ionicons name="layers" size={9} color="#5c99b3" />
+        <Text className="text-[#1f5f7a] text-[9px] font-semibold tracking-wide">
+          {product?.category_name || "General"}
+        </Text>
+      </View>
+    )}
+  </View>
+ 
+  <View className="gap-2 mb-3">
+
+    {product?.category_name && (
+      <View className="flex-row items-center gap-2">
+        <Text className="text-[#6b9fb8] text-[10px] font-bold uppercase">
+          Main
+        </Text>
+        <View className="bg-[#0f3f5a] px-3 py-1 rounded-full">
+          <Text className="text-white text-[10px] font-bold">
+            {product.category_name}
+          </Text>
+        </View>
+      </View>
+    )}
+
+    {product?.sub_category && (
+      <View className="flex-row items-center gap-2">
+        <Text className="text-[#6b9fb8] text-[10px] font-bold uppercase">
+          Sub
+        </Text>
+        <View className="bg-[#5c99b3] px-2.5 py-0.5 rounded-full">
+          <Text className="text-white text-[10px] font-semibold">
+            {product.sub_category}
+          </Text>
+        </View>
+      </View>
+    )}
+
+    {product?.third_category && (
+      <View className="flex-row items-center gap-2">
+        <Text className="text-[#6b9fb8] text-[10px] font-bold uppercase">
+          Third
+        </Text>
+        <View className="bg-[#e0f2fe] border border-[#dbeafe] px-2 py-0.5 rounded-full">
+          <Text className="text-[#1f5f7a] text-[10px] font-semibold">
+            {product.third_category}
+          </Text>
+        </View>
+      </View>
+    )}
+
+  </View> */}
+   <View className="flex-row items-center gap-2 mb-7 flex-wrap">
+            {product?.category_name && (
+              <View className="flex-row items-center bg-slate-900 px-3 py-1.5 rounded-xl gap-1.5">
+                <Ionicons name="layers" size={10} color="#38bdf8" />
+                <Text className="text-white text-[10px] font-bold tracking-wide">
+                  {product.category_name}
+                </Text>
+              </View>
+            )}
+            {product?.sub_category && (
+              <View className="flex-row items-center bg-sky-100 border border-sky-200 px-3 py-1.5 rounded-xl gap-1">
+                <Text className="text-sky-700 text-[10px] font-semibold">
+                  {product.sub_category}
+                </Text>
+              </View>
+            )}
+            {product?.third_category && (
+              <View className="flex-row items-center bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-xl gap-1">
+                <Text className="text-slate-500 text-[10px] font-semibold">
+                  {product.third_category}
+                </Text>
+              </View>
+            )}
+          </View>
+
+  {/* TITLE */}
+  <Text
+    className="text-[#0f3f5a] text-3xl font-black leading-tight"
+    numberOfLines={3}
+  >
+    {product?.name}
+  </Text>
+
+</View>
 
     {/* SPECS */}
     <View className="flex-row gap-3 mb-8">

@@ -13,7 +13,6 @@ import {
   Text,
   View,
 } from "react-native";
-import { WebView } from "react-native-webview"; // <-- Added
 
 interface Product {
   id: number;
@@ -264,184 +263,204 @@ const [products, setProducts] = useState<any[]>([]);
       <View className="h-px bg-stone-200" />
 
       {/* ── PRODUCT LIST ── */}
-      <View className="px-4 pt-5 pb-12 gap-4">
-        {products.length === 0 ? (
-          <View className="bg-white rounded-3xl p-12 border border-stone-200/70 items-center gap-3 mt-4">
-            <View className="w-16 h-16 rounded-2xl bg-stone-50 border border-stone-100 items-center justify-center mb-1">
-              <Ionicons name="cube-outline" size={30} color="#c4b5a5" />
-            </View>
-            <Text className="text-stone-800 font-bold text-base tracking-tight">
-              No Products Yet
-            </Text>
-            <Text className="text-stone-400 text-sm text-center leading-6">
-              No listings are available in this category right now.
-            </Text>
-          </View>
-        ) : (
-          <>
-            {products.map((product) => (
-              <Pressable
-                key={product.id}
-          onPress={() => router.push(`/(guest)/product/${product.id}` as any)}
-                className="bg-white border border-stone-200/80 rounded-3xl overflow-hidden active:opacity-75"
+<View className="px-4 pt-5 pb-12 gap-4">
+  {products.length === 0 ? (
+    <View className="bg-white rounded-3xl p-12 border border-stone-200/70 items-center gap-3 mt-4">
+      <View className="w-16 h-16 rounded-2xl bg-stone-50 border border-stone-100 items-center justify-center mb-1">
+        <Ionicons name="cube-outline" size={30} color="#c4b5a5" />
+      </View>
+      <Text className="text-stone-800 font-bold text-base tracking-tight">
+        No Products Yet
+      </Text>
+      <Text className="text-stone-400 text-sm text-center leading-6">
+        No listings are available in this category right now.
+      </Text>
+    </View>
+  ) : (
+    <>
+      {/* ✅ GRID WRAPPER */}
+      <View className="flex-row flex-wrap justify-between">
+        {products.map((product) => (
+          <Pressable
+            key={product.id}
+            onPress={() =>
+              router.push(`/(guest)/product/${product.id}` as any)
+            }
+            className="bg-white border border-stone-200/80 rounded-3xl overflow-hidden active:opacity-75 mb-4 w-[48%]"
+          >
+            {/* ── Product Image ── */}
+            {product.image_url ? (
+              <Image
+                source={{ uri: product.image_url }}
+                className="w-full h-40" // reduced for grid
+                resizeMode="cover"
+              />
+            ) : (
+              <View
+                className="w-full h-36 items-center justify-center"
+                style={{ backgroundColor: color.bg }}
               >
-                {/* ── Product Image ── */}
-                {product.image_url ? (
-                  <Image
-                    source={{ uri: product.image_url }}
-                    className="w-full h-52"
-                    resizeMode="cover"
-                  />
-                ) : (
-                  <View
-                    className="w-full h-44 items-center justify-center"
-                    style={{ backgroundColor: color.bg }}
+                <Text
+                  className="text-5xl font-black tracking-tighter"
+                  style={{ color: color.text, opacity: 0.35 }}
+                >
+                  {product.name.slice(0, 2).toUpperCase()}
+                </Text>
+              </View>
+            )}
+
+            {/* ── Card Body ── */}
+            <View className="p-4 gap-2">
+              {/* Name + Category */}
+              <View className="flex-row items-start justify-between gap-2">
+                <Text
+                  className="text-stone-900 font-bold text-sm leading-snug flex-1"
+                  numberOfLines={2}
+                >
+                  {product.name}
+                </Text>
+                <View
+                  className="px-2 py-0.5 rounded-full"
+                  style={{ backgroundColor: color.bg }}
+                >
+                  <Text
+                    className="text-[10px] font-bold"
+                    style={{ color: color.text }}
                   >
-                    <Text
-                      className="text-6xl font-black tracking-tighter"
-                      style={{ color: color.text, opacity: 0.35 }}
-                    >
-                      {product.name.slice(0, 2).toUpperCase()}
-                    </Text>
-                  </View>
-                )}
+                    {product.category_name}
+                  </Text>
+                </View>
+              </View>
 
-                {/* ── Card Body ── */}
-                <View className="p-5 gap-3">
-                  {/* Name + Category Badge */}
-                  <View className="flex-row items-start justify-between gap-3">
-                    <Text
-                      className="text-stone-900 font-bold text-base leading-snug flex-1 tracking-tight"
-                      numberOfLines={2}
-                    >
-                      {product.name}
-                    </Text>
-                    <View
-                      className="px-2.5 py-1 rounded-full"
-                      style={{ backgroundColor: color.bg }}
-                    >
-                      <Text
-                        className="text-xs font-bold"
-                        style={{ color: color.text }}
-                      >
-                        {product.category_name}
+              {/* Sub-category */}
+              {/* {(product.sub_category || product.third_category) && (
+                <View className="flex-row gap-1 flex-wrap">
+                  {product.sub_category && (
+                    <View className="bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full">
+                      <Text className="text-amber-600 text-[10px] font-semibold">
+                        {product.sub_category}
                       </Text>
-                    </View>
-                  </View>
-
-                  {/* Sub-category Tags */}
-                  {(product.sub_category || product.third_category) && (
-                    <View className="flex-row gap-2 flex-wrap">
-                      {product.sub_category && (
-                        <View className="bg-amber-50 border border-amber-100 px-3 py-0.5 rounded-full">
-                          <Text className="text-amber-600 text-xs font-semibold">
-                            {product.sub_category}
-                          </Text>
-                        </View>
-                      )}
-                      {product.third_category && (
-                        <View className="bg-stone-50 border border-stone-200 px-3 py-0.5 rounded-full">
-                          <Text className="text-stone-500 text-xs font-semibold">
-                            {product.third_category}
-                          </Text>
-                        </View>
-                      )}
                     </View>
                   )}
-
-                  {/* ── Description — WebView for rich HTML ── */}
-                  {product.description ? (
-                    <View
-                      style={{
-                        height: webViewHeights[product.id] ?? 60, // <-- default 60 jab tak height nahi aati
-                        width: "100%",
-                      }}
-                    >
-                      <WebView
-                        scrollEnabled={false}
-                        style={{ backgroundColor: "transparent", flex: 1 }}
-                        source={{ html: getDescriptionHtml(product.description) }}
-                        onMessage={(event) => {
-                          const h = Number(event.nativeEvent.data);
-                          if (h > 0) {
-                            setWebViewHeights((prev) => ({
-                              ...prev,
-                              [product.id]: h + 10, // <-- 10px buffer
-                            }));
-                          }
-                        }}
-                        javaScriptEnabled={true}
-                        showsVerticalScrollIndicator={false}
-                      />
-                    </View>
-                  ) : null}
-
-                  {/* ── Divider ── */}
-                  <View className="h-px bg-stone-100 my-0.5" />
-
-                  {/* ── Vendor Row ── */}
-                  <View className="flex-row items-center justify-between">
-                    <View className="flex-row items-center gap-2 flex-1">
-                      <View className="w-7 h-7 rounded-full bg-stone-100 items-center justify-center">
-                        <Ionicons name="business-outline" size={13} color="#78716c" />
-                      </View>
-                      <Text
-                        className="text-stone-500 text-xs font-semibold flex-1"
-                        numberOfLines={1}
-                      >
-                        {product.vendor_name}
+                  {product.third_category && (
+                    <View className="bg-stone-50 border border-stone-200 px-2 py-0.5 rounded-full">
+                      <Text className="text-stone-500 text-[10px] font-semibold">
+                        {product.third_category}
                       </Text>
                     </View>
+                  )}
+                </View>
+              )} */}
 
-                    <Pressable onPress={() => {
-  setSelectedFirm({
-    id: String(product?.vendor_id),
-    name: product?.firm_name || "",
-    city: product?.location || "",
-    category: product?.category_name || "",
-    rating: null,
-    image: product?.logo_url || "",
-    phone: product?.vendor_phone || "",
-    email: product?.email || "",
-  });
-  router.push("/(guest)/firm-detail");
-}} className="flex-row items-center gap-1 bg-sky-500 px-3 py-1.5 rounded-full">
-                      <Text className="text-white text-xs font-bold">
-                        View Firm
-                      </Text>
-                      <Ionicons name="arrow-forward" size={11} color="white" />
-                    </Pressable>
+              {/* Description */}
+              {/* {product.description ? (
+                <View
+                  style={{
+                    height: webViewHeights[product.id] ?? 60,
+                    width: "100%",
+                  }}
+                >
+                  <WebView
+                    scrollEnabled={false}
+                    style={{ backgroundColor: "transparent", flex: 1 }}
+                    source={{
+                      html: getDescriptionHtml(product.description),
+                    }}
+                    onMessage={(event) => {
+                      const h = Number(event.nativeEvent.data);
+                      if (h > 0) {
+                        setWebViewHeights((prev) => ({
+                          ...prev,
+                          [product.id]: h + 10,
+                        }));
+                      }
+                    }}
+                    javaScriptEnabled={true}
+                    showsVerticalScrollIndicator={false}
+                  />
+                </View>
+              ) : null} */}
+
+              {/* Divider */}
+              <View className="h-px bg-stone-100 my-1" />
+
+              {/* Vendor Row */}
+              <View className="flex-row items-center justify-between">
+                <View className="flex-row items-center gap-1 flex-1">
+                  <View className="w-6 h-6 rounded-full bg-stone-100 items-center justify-center">
+                    <Ionicons
+                      name="business-outline"
+                      size={11}
+                      color="#78716c"
+                    />
                   </View>
+                  <Text
+                    className="text-stone-500 text-[10px] font-semibold flex-1"
+                    numberOfLines={1}
+                  >
+                    {product.vendor_name}
+                  </Text>
                 </View>
-              </Pressable>
-            ))}
 
-            {/* ── Load More Indicator ── */}
-            {loadingMore && (
-              <View className="py-6 items-center gap-2">
-                <ActivityIndicator size="small" color="#d97706" />
-                <Text className="text-stone-400 text-xs font-medium">
-                  Loading more…
-                </Text>
+                <Pressable
+                  onPress={() => {
+                    setSelectedFirm({
+                      id: String(product?.vendor_id),
+                      name: product?.firm_name || "",
+                      city: product?.location || "",
+                      category: product?.category_name || "",
+                      rating: null,
+                      image: product?.logo_url || "",
+                      phone: product?.vendor_phone || "",
+                      email: product?.email || "",
+                    });
+                    router.push("/(guest)/firm-detail");
+                  }}
+                  className="flex-row items-center gap-1 bg-sky-500 px-2 py-1 rounded-full"
+                >
+                  <Text className="text-white text-[10px] font-bold">
+                    View
+                  </Text>
+                  <Ionicons name="arrow-forward" size={10} color="white" />
+                </Pressable>
               </View>
-            )}
-
-            {/* ── End of Results ── */}
-            {pagination && page >= pagination.totalPages && products.length > 0 && (
-              <View className="py-6 items-center gap-1.5">
-                <View className="flex-row items-center gap-2">
-                  <View className="h-px w-10 bg-stone-300" />
-                  <Ionicons name="checkmark-circle" size={16} color="#a8a29e" />
-                  <View className="h-px w-10 bg-stone-300" />
-                </View>
-                <Text className="text-stone-400 text-xs font-semibold">
-                  All {pagination.total} products loaded
-                </Text>
-              </View>
-            )}
-          </>
-        )}
+            </View>
+          </Pressable>
+        ))}
       </View>
+
+      {/* Load More */}
+      {loadingMore && (
+        <View className="py-6 items-center gap-2">
+          <ActivityIndicator size="small" color="#d97706" />
+          <Text className="text-stone-400 text-xs font-medium">
+            Loading more…
+          </Text>
+        </View>
+      )}
+
+      {/* End */}
+      {pagination &&
+        page >= pagination.totalPages &&
+        products.length > 0 && (
+          <View className="py-6 items-center gap-1.5">
+            <View className="flex-row items-center gap-2">
+              <View className="h-px w-10 bg-stone-300" />
+              <Ionicons
+                name="checkmark-circle"
+                size={16}
+                color="#a8a29e"
+              />
+              <View className="h-px w-10 bg-stone-300" />
+            </View>
+            <Text className="text-stone-400 text-xs font-semibold">
+              All {pagination.total} products loaded
+            </Text>
+          </View>
+        )}
+    </>
+  )}
+</View>
     </ScrollView>
   );
 }

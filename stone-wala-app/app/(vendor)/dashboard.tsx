@@ -60,6 +60,7 @@ const onRefresh = async () => {
       setError(null);
       const response = await getVendorDashboard();
       const data = response.data;
+        
 
       setProfile({
         id: "",
@@ -90,6 +91,7 @@ const onRefresh = async () => {
       setLoading(false);
     }
   };
+  
     const handleLogout = () => {
       Alert.alert(
         "Logout",
